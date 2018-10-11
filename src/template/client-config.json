@@ -1,0 +1,20 @@
+{
+  "connectorServerInfo": {
+    "secure": false,
+    "port": 9550,
+    "host": "127.0.0.1"
+  },
+  "advanced": {
+    "requestDetail": false
+  },
+  "originMappings": [
+    {
+      "from": "<ORIGIN HOSTNAME>",
+      "to": {
+        "secure": false,
+        "port": 80,
+        "host": "<target hostname>"
+      }
+    }
+  ]
+}

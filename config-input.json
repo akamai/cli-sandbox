@@ -1,0 +1,29 @@
+{
+  "sandbox": {
+    "name": "SANDBOX_NAME_3",
+    "fromProperty": {
+      "propertyId": 1,
+      "propertyVersion": 2
+    },
+    "isClonable": "false",
+    "requestHostnames": [
+      "www.abc.example.com",
+      "aaa.bbb.com"
+    ]
+  },
+  "connectorServerInfo": {
+    "secure": false,
+    "port": 9550,
+    "host": "localhost"
+  },
+  "originMappings": [
+    {
+      "from": "originhostname",
+      "to": {
+        "secure": true,
+        "port": 443,
+        "host": "www.akamai.com"
+      }
+    }
+  ]
+}

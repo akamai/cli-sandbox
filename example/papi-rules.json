@@ -1,0 +1,34 @@
+{
+  "ruleFormat": "v2018-02-27",
+  "rules": {
+    "name": "default",
+    "options": {
+      "is_secure": false
+    },
+    "criteria": [],
+    "behaviors": [
+      {
+        "name": "origin",
+        "options": {
+          "httpPort": 80,
+          "enableTrueClientIp": false,
+          "compress": true,
+          "cacheKeyHostname": "ORIGIN_HOSTNAME",
+          "forwardHostHeader": "REQUEST_HOST_HEADER",
+          "hostname": "dev.example.com",
+          "originType": "CUSTOMER"
+        }
+      },
+      {
+        "name": "cpCode",
+        "options": {
+          "value": {
+            "id": 12345,
+            "name": "my CP code"
+          }
+        }
+      }
+    ],
+    "children": []
+  }
+}

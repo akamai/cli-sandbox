@@ -1,0 +1,37 @@
+{
+  "name": "sandbox-cli",
+  "version": "1.0.0",
+  "description": "A tool to help manage Akamai Sandboxes. Uses the sandbox {OPEN} API.",
+  "repository": "https://github.com/akamai/cli-sandbox",
+  "scripts": {
+    "build": "npm run build-ts",
+    "build-ts": "tsc",
+    "postinstall": "npm run build"
+  },
+  "main": "./akamai-sandbox",
+  "bin": {
+    "sandbox": "./akamai-sandbox"
+  },
+  "dependencies": {
+    "lodash": "4.17.11",
+    "app-root-path": "2.0.1",
+    "commander": "2.18.0",
+    "inquirer": "6.2.0",
+    "download": "7.1.0",
+    "unzipper": "0.9.3",
+    "shelljs": "0.8.2",
+    "edgegrid": "3.0.4",
+    "untildify": "3.0.3",
+    "console.table": "0.10.0",
+    "find-java-home": "0.2.0",
+    "fs-extra": "7.0.0",
+    "cli-spinner": "0.2.8",
+    "validator": "10.8.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.91",
+    "@types/node": "^9.4.6",
+    "@types/request": "^2.47.0",
+    "typescript": "^2.8.3"
+  }
+}

@@ -1,0 +1,135 @@
+var EdgeGrid = require('edgegrid');
+import * as path from 'path';
+import * as os from 'os';
+import * as envUtils from '../utils/env-utils';
+
+const _edge = null;
+
+function getEdgeLazy() {
+  if (_edge != null) {
+    return _edge;
+  }
+  return new EdgeGrid({
+    path: path.resolve(os.homedir(), '.edgerc'),
+    section: 'default',
+    debug: envUtils.isDebugMode()
+  });
+}
+
+function isOkStatus(code) {
+  return code >= 200 && code < 300;
+}
+
+function sendEdgeRequest(path: string, method: string, body, headers) {
+  const edge = getEdgeLazy();
+  return new Promise(
+    (resolve, reject) => {
+      edge.auth({
+        path,
+        method,
+        headers,
+        body
+      });
+
+      edge.send(function (error, response, body) {
+        if (isOkStatus(response.statusCode)) {
+          if (!body) {
+            resolve();
+          } else {
+            var responseObject = JSON.parse(body);
+            resolve(responseObject);
+          }
+        } else {
+          try {
+            var errorObj = JSON.parse(body);
+            reject(errorObj);
+          } catch (ex) {
+            console.error(`got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
+            reject(body);
+          }
+        }
+      });
+    });
+}
+
+function postJson(path: string, body) {
+  return sendEdgeRequest(path, 'POST', body, {
+    'Content-Type': 'application/json'
+  });
+}
+
+function putJson(path: string, body) {
+  return sendEdgeRequest(path, 'PUT', body, {
+    'Content-Type': 'application/json'
+  });
+}
+
+function getJson(path: string) {
+  return sendEdgeRequest(path, 'GET', '', {});
+}
+
+export function deleteSandbox(sandboxId: string) {
+  return sendEdgeRequest(`/devpops-api/v1/sandboxes/${sandboxId}`, 'DELETE', '', {});
+}
+
+export function cloneSandbox(sandboxId: string, name: string) {
+  const body = {
+    name
+  };
+  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/clone`, body);
+}
+
+export function getAllSandboxes() {
+  return getJson(`/devpops-api/v1/sandboxes`);
+}
+
+export function getSandbox(sandboxId: string) {
+  return getJson(`/devpops-api/v1/sandboxes/${sandboxId}`);
+}
+
+export function updateSandbox(sandbox) {
+  return putJson(`/devpops-api/v1/sandboxes/${sandbox.sandboxId}`, sandbox);
+}
+
+export function createFromRules(papiRules, requestHostnames, name, isClonable) {
+  var bodyObj = {
+    name: name,
+    requestHostnames: requestHostnames,
+    createFromRules: papiRules,
+    isClonable: isClonable
+  };
+  return postJson('/devpops-api/v1/sandboxes', bodyObj);
+}
+
+export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
+  var bodyObj = {
+    name: name,
+    requestHostnames: requestHostnames,
+    createFromProperty: fromPropertyObj,
+    isClonable: isClonable
+  };
+  return postJson('/devpops-api/v1/sandboxes', bodyObj);
+}
+
+export function getRules(sandboxId: string, sandboxPropertyId: string) {
+  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
+  return getJson(endpoint);
+}
+
+export function updateRules(sandboxId: string, sandboxPropertyId: string, rules) {
+  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
+  var body = {
+    rules
+  };
+  return putJson(endpoint, body);
+}
+
+export function getProperty(sandboxId: string, sandboxPropertyId: string) {
+  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
+  return getJson(endpoint);
+}
+
+export function updateProperty(sandboxId, propertyObj) {
+  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${propertyObj.sandboxPropertyId}`;
+  return putJson(endpoint, propertyObj);
+}

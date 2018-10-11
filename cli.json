@@ -1,0 +1,13 @@
+{
+  "requirements": {
+    "node": "8.4.0"
+  },
+  "commands": [
+    {
+      "name": "sandbox",
+      "version": "1.0.0",
+      "description": "Manage akamai sandbox environments",
+      "bin": "https://github.com/akamai/cli-sandbox/releases/download/{{.Version}}/akamai-{{.Name}}-{{.Version}}-{{.OS}}-{{.Arch}}{{.BinSuffix}}"
+    }
+  ]
+}
