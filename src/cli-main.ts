@@ -204,20 +204,24 @@ program
     }
   });
 
+function findByIdentifier(identifier: string) {
+  var results = sandboxClientManager.searchLocalSandboxes(identifier);
+  if (results.length == 0) {
+    logAndExit(`could not find any matching sandboxes for input: ${identifier}`)
+  } else if (results.length > 1) {
+    logAndExit(`${results.length} match input. Please be more specific.`);
+  } else {
+    return results[0];
+  }
+}
+
 program
   .command('use <sandbox-identifier>')
   .description('sets the sandbox as currently active sandbox')
   .action(function (arg, options) {
-    var results = sandboxClientManager.searchLocalSandboxes(arg);
-    if (results.length == 0) {
-      logAndExit(`could not find any matching sandboxes for input: ${arg}`)
-    } else if (results.length > 1) {
-      logAndExit(`${results.length} match input. Please be more specific.`);
-    } else {
-      var sb = results[0];
-      sandboxClientManager.makeCurrent(sb.sandboxId);
-      console.log(`Sandbox: ${sb.name} is now active`)
-    }
+    var sb = findByIdentifier(arg);
+    sandboxClientManager.makeCurrent(sb.sandboxId);
+    console.log(`Sandbox: ${sb.name} is now active`)
   });
 
 program
