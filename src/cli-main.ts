@@ -88,7 +88,7 @@ async function showRemoteSandboxes() {
     return {
       has_local: localIds.has(sb.sandboxId) ? "Y" : "N",
       name: sb.name,
-      sandbox_d: sb.sandboxId,
+      sandbox_id: sb.sandboxId,
       status: sb.status
     }
   });
@@ -302,6 +302,7 @@ program
     var requestHostnames = options.requestHostnames;
     try {
       await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
+      console.log(`successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
     } catch (e) {
       console.log(e);
     }
@@ -347,6 +348,7 @@ program
       }
       const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
       await updateHostnamesAndRules(options.requestHostnames, options.rules, sandboxId, sandboxPropertyId);
+      console.log(`successfully updated sandbox_id: ${sandboxId}`)
     } catch (e) {
       console.log(e);
     }
