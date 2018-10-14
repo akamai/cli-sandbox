@@ -134,7 +134,7 @@ async function showAllPapiRulesHelper(sandboxId: string, sandbox) {
   })
 }
 
-async function showSandboxOverviewFull(sandboxId: string) {
+async function showSandboxOverview(sandboxId: string) {
   var localSandbox = sandboxClientManager.getSandboxLocalData(sandboxId);
   if (localSandbox) {
     cliUtils.logWithBorder("Local sandbox information:");
@@ -157,46 +157,43 @@ async function showSandboxOverviewFull(sandboxId: string) {
     console.log("sandboxPropertyId: " + p.sandboxPropertyId);
     console.log(`requestHostname(s): ${p.requestHostnames.join(', ')}\n`);
   });
-
-  showAllPapiRulesHelper(sandboxId, sandbox);
 }
 
 program
-  .command('show [sandbox_id]')
-  .option('-r, --rules', 'show papi rules')
-  .description('shows detail about a sandbox')
-  .action(async function (sandboxId, cmd) {
+  .command('show [sandbox-identifier]')
+  .description('shows details about a sandbox')
+  .action(async function (arg, cmd) {
     try {
-      var sandboxIdToUse = sandboxId;
-      if (!sandboxId) {
+      var sandboxIdToUse = null;
+      if (!arg) {
         if (sandboxClientManager.hasCurrent()) {
           sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
         } else {
           logAndExit('Unable to determine sandbox_id');
         }
-      }
-      if (!cmd.rules) {
-        await showSandboxOverviewFull(sandboxIdToUse);
       } else {
-        await showAllPapiRules(sandboxIdToUse);
+        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
       }
+      await showSandboxOverview(sandboxIdToUse);
     } catch (e) {
       console.error(e);
     }
   });
 
 program
-  .command('rules [sandbox_id]')
+  .command('rules [sandbox-identifier]')
   .description('shows papi rules for sandbox')
-  .action(async function (sandboxId, cmd) {
+  .action(async function (arg, cmd) {
     try {
-      var sandboxIdToUse = sandboxId;
-      if (!sandboxId) {
+      var sandboxIdToUse = null;
+      if (!arg) {
         if (sandboxClientManager.hasCurrent()) {
           sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
         } else {
           logAndExit('Unable to determine sandbox_id');
         }
+      } else {
+        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
       }
       await showAllPapiRules(sandboxIdToUse);
     } catch (e) {
@@ -204,14 +201,37 @@ program
     }
   });
 
-function findByIdentifier(identifier: string) {
+function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true) {
   var results = sandboxClientManager.searchLocalSandboxes(identifier);
   if (results.length == 0) {
-    logAndExit(`could not find any matching sandboxes for input: ${identifier}`)
+    if (failOnNoResult) {
+      logAndExit(`could not find any local sandboxes matching input: ${identifier}`)
+    } else {
+      return null;
+    }
   } else if (results.length > 1) {
-    logAndExit(`${results.length} match input. Please be more specific.`);
+    logAndExit(`${results.length} local sandboxes match input. Please be more specific.`);
   } else {
     return results[0];
+  }
+}
+
+function orCurrent(sandboxIdentifier) {
+  if (sandboxIdentifier) {
+    return sandboxIdentifier;
+  }
+  if (!sandboxClientManager.hasCurrent()) {
+    return 'no current sandboxId. Please specify a sandboxId.';
+  }
+  return sandboxClientManager.getCurrentSandboxId();
+}
+
+function getSandboxIdFromIdentifier(sandboxIdentifier: string) {
+  var sb = getLocalSandboxForIdentifier(sandboxIdentifier, false);
+  if (sb) {
+    return sb.sandboxId;
+  } else {
+    return sandboxIdentifier;
   }
 }
 
@@ -219,7 +239,7 @@ program
   .command('use <sandbox-identifier>')
   .description('sets the sandbox as currently active sandbox')
   .action(function (arg, options) {
-    var sb = findByIdentifier(arg);
+    var sb = getLocalSandboxForIdentifier(arg);
     sandboxClientManager.makeCurrent(sb.sandboxId);
     console.log(`Sandbox: ${sb.name} is now active`)
   });
@@ -272,16 +292,6 @@ function parseToBoolean(str: string) {
   }
 }
 
-function orCurrentSandboxId(sandboxId) {
-  if (sandboxId) {
-    return sandboxId;
-  }
-  if (!sandboxClientManager.hasCurrent()) {
-    return 'no current sandboxId. Please specify a sandboxId.';
-  }
-  return sandboxClientManager.getCurrentSandboxId();
-}
-
 program
   .command('update-property <sandbox-id> <sandbox-property-id>')
   .description('updates a sandbox-property')
@@ -310,17 +320,18 @@ async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxI
 }
 
 program
-  .command('update [sandbox_id]')
+  .command('update [sandbox-identifier]')
   .description('updates a sandbox')
   .option('-rules, --rules <file>', 'papi json file')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --sandboxName <string>', 'name of sandbox')
   .option('-h, --requestHostnames <string>', 'comma separated list of request hostnames')
-  .action(async function (sId, options) {
+  .action(async function (arg, options) {
     helpExitOnNoArgs(options);
     try {
-      const sandboxId = orCurrentSandboxId(sId);
-      const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId), 'loading current sandbox record');
+
+      const sandboxId = getSandboxIdFromIdentifier(orCurrent(arg));
+      const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId), `loading sandboxId: ${sandboxId}`);
       if (options.clonable) {
         sandbox.isClonable = parseToBoolean(options.clonable);
       }
@@ -357,11 +368,12 @@ function parseHostnameCsv(csv) {
 }
 
 program
-  .command('clone <sandbox-id>')
+  .command('clone <sandbox-identifier>')
   .description('clones a sandbox')
   .option('-n, --sandboxName <string>', 'name of sandbox')
-  .action(async function (sandboxId, options) {
+  .action(async function (arg, options) {
     try {
+      const sandboxId = getSandboxIdFromIdentifier(arg);
       if (!options.sandboxName) {
         logAndExit('parameter --sandboxName is required');
       }
