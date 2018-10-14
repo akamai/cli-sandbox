@@ -151,7 +151,7 @@ async function showSandboxOverview(sandboxId: string) {
   console.log(`is_clonable: ${sandbox.isClonable}`);
   console.log(`status: ${sandbox.status}\n`);
 
-  cliUtils.logWithBorder("Sandbox Poperties");
+  cliUtils.logWithBorder("Sandbox Properties");
 
   sandbox.properties.forEach(p => {
     console.log("sandboxPropertyId: " + p.sandboxPropertyId);
