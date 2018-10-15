@@ -74,14 +74,36 @@ function getClientTemplatePath() {
   return path.resolve(appRoot.path, 'src/template/client-config.json');
 }
 
-export function registerNewSandbox(sandboxid: string, jwt: string, name: string) {
+function buildClientConfig(origins: Array<string>) {
+  var template: string = fs.readFileSync(getClientTemplatePath()).toString();
+  var clientConfig = JSON.parse(template);
+  const defaultTo = {
+    secure: false,
+    port: 80,
+    host: '<target hostname>'
+  };
+  if (!origins || origins.length == 0) {
+    clientConfig.originMappings.push({
+      from: '<ORIGIN HOSTNAME>',
+      to: defaultTo
+    });
+  } else {
+   origins.forEach(o => {
+     clientConfig.originMappings.push({
+       from: o,
+       to: defaultTo
+     });
+   });
+  }
+  return clientConfig;
+}
+
+export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>) {
   const folderName = name;
   const sandboxDir = path.join(SANDBOXES_DIR, folderName);
   fs.mkdirSync(sandboxDir);
 
-  var template: string = fs.readFileSync(getClientTemplatePath()).toString();
-
-  var clientConfig = JSON.parse(template);
+  const clientConfig: any = buildClientConfig(origins);
 
   clientConfig.jwt = jwt;
 

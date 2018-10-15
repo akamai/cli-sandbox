@@ -8,13 +8,5 @@
     "requestDetail": false
   },
   "originMappings": [
-    {
-      "from": "<ORIGIN HOSTNAME>",
-      "to": {
-        "secure": false,
-        "port": 80,
-        "host": "<target hostname>"
-      }
-    }
   ]
 }

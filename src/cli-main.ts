@@ -111,9 +111,19 @@ program
     }
   });
 
-async function showAllPapiRules(sandboxId: string) {
+async function getRulesForSandboxId(sandboxId: string) {
   var sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
-  showAllPapiRulesHelper(sandboxId, sandbox);
+  var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
+  var r = [];
+
+  for (var pid of pIds) {
+    var obj: any = await cliUtils.spinner(sandboxSvc.getRules(sandboxId, pid));
+    r.push({
+      title: `sandbox_property_id: ${pid}`,
+      rules: obj.rules
+    });
+  }
+  return r;
 }
 
 function populateOrigins(papiNode, originsList) {
@@ -135,24 +145,6 @@ function getOriginsForPapiRules(papiRules) {
   var o = [];
   populateOrigins(papiRules, o);
   return o;
-}
-
-async function showAllPapiRulesHelper(sandboxId: string, sandbox) {
-  var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
-  var r = [];
-
-  for (var pid of pIds) {
-    var obj: any = await cliUtils.spinner(sandboxSvc.getRules(sandboxId, pid));
-    r.push({
-      title: `sandbox_property_id: ${pid}`,
-      rules: obj.rules
-    });
-  }
-
-  r.forEach(o => {
-    cliUtils.logWithBorder(o.title);
-    console.log(JSON.stringify(o.rules, undefined, 2));
-  })
 }
 
 async function showSandboxOverview(sandboxId: string) {
@@ -216,7 +208,11 @@ program
       } else {
         sandboxIdToUse = getSandboxIdFromIdentifier(arg);
       }
-      await showAllPapiRules(sandboxIdToUse);
+      var rulesList = await getRulesForSandboxId(sandboxIdToUse);
+      rulesList.forEach(o => {
+        cliUtils.logWithBorder(o.title);
+        console.log(JSON.stringify(o.rules, undefined, 2));
+      })
     } catch (e) {
       console.error(e);
     }
@@ -402,7 +398,10 @@ program
       }
       const name = options.sandboxName;
       const cloneResponse = await cliUtils.spinner(sandboxSvc.cloneSandbox(sandboxId, name));
-      var r = sandboxClientManager.registerNewSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name);
+
+      console.log('building origin list');
+      var origins: Array<string> = await getOriginListForSandboxId(cloneResponse.sandboxId);
+      var r = sandboxClientManager.registerNewSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name, origins);
       console.info(`Successfully created sandbox_id ${cloneResponse.sandboxId}. Generated sandbox client configuration at ${r.configPath} please edit this file`);
     } catch (e) {
       console.log(e);
@@ -450,6 +449,16 @@ async function createFromProperty(propertySpecifier: string, hostnames: Array<st
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
 }
 
+async function getOriginListForSandboxId(sandboxId: string) : Promise<Array<string>> {
+  var rulesList = await getRulesForSandboxId(sandboxId);
+  const origins = new Set();
+  rulesList.forEach(entry => {
+    const originsForRules = getOriginsForPapiRules(entry.rules);
+    originsForRules.forEach(o => origins.add(o));
+  });
+  return Array.from(origins);
+}
+
 program
   .command('create')
   .description('create a new sandbox')
@@ -488,8 +497,11 @@ program
         r = await createFromProperty(propertySpecifier, hostnames, isClonable, name);
       }
 
+      console.log('building origin list');
+      var origins: Array<string> = await getOriginListForSandboxId(r.sandboxId);
+
       console.log('registering sandbox in local datastore');
-      var registration = sandboxClientManager.registerNewSandbox(r.sandboxId, r.jwtToken, name);
+      var registration = sandboxClientManager.registerNewSandbox(r.sandboxId, r.jwtToken, name, origins);
 
       console.info(`Successfully created sandbox_id ${r.sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
     } catch (e) {
