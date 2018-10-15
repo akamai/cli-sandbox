@@ -397,32 +397,33 @@ async function createFromRules(papiFilePath: string, hostnames: Array<string>, i
 }
 
 async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
-  const propertySpecObj: any = {};
-  var intValidationOptions = {};
+  var propertySpec;
+  var propertyVersion;
   if (propertySpecifier.indexOf(':') > -1) {
-    var parts = propertySpecifier.split(':').map(s => s.trim());
-    if (parts.length != 2) {
-      logAndExit(`property specifier: ${propertySpecifier} is invalid. Please use property_id:property_version (e.g. 124:5)`);
-    }
-    if (!validator.isInt(parts[0], intValidationOptions)) {
-      logAndExit(`property_id: ${parts[0]} must be an integer > 0`);
-    }
-    if (!validator.isInt(parts[1], intValidationOptions)) {
-      logAndExit(`version: ${parts[1]} must be an integer > 0`);
-    }
-    // validate
-    propertySpecObj.propertyId = parseInt(parts[0]);
-    propertySpecObj.propertyVersion = parseInt(parts[1]);
+    var parts = propertySpecifier.split(':').map(s => s.trim().toLowerCase());
+    propertySpec = parts[0];
+    propertyVersion = parts[1];
   } else {
-    if (!validator.isInt(propertySpecifier, intValidationOptions)) {
-      logAndExit(`property_id: ${propertySpecifier} must be an integer > 0`);
-    }
-    // validate
-    propertySpecObj.propertyId = parseInt(propertySpecifier);
+    propertySpec = propertySpecifier.trim().toLowerCase();
   }
 
-  var msg = `creating new sandbox from property_id: ${propertySpecObj.propertyId} `;
-  if (propertySpecObj.propertyVersion) {
+  if (propertyVersion && !validator.isInt(propertyVersion, {min: 1})) {
+    logAndExit(`property_version: ${propertyVersion} must be an integer > 0`);
+  }
+
+  const propertySpecObj: any = {};
+  var key;
+  if (validator.isInt(propertySpec)) {
+    key = 'propertyId';
+  } else {
+    key = 'hostname';
+  }
+
+  propertySpecObj[key] = propertySpec;
+
+  var msg = `creating new sandbox from ${key}: ${propertySpec} `;
+  if (propertyVersion) {
+    propertySpecObj.propertyVersion = propertyVersion;
     msg += `version: ${propertySpecObj.propertyVersion}`;
   }
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
@@ -432,7 +433,7 @@ program
   .command('create')
   .description('create a new sandbox')
   .option('-rules, --fromRules <file>', 'papi json file')
-  .option('-p, --fromProperty <property_id:version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-p, --fromProperty <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --sandboxName <string>', 'name of sandbox')
   .option('-hostnames, --requestHostnames <string>', 'comma separated list of request hostnames')
