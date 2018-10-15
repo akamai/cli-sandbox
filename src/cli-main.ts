@@ -116,6 +116,27 @@ async function showAllPapiRules(sandboxId: string) {
   showAllPapiRulesHelper(sandboxId, sandbox);
 }
 
+function populateOrigins(papiNode, originsList) {
+  if (papiNode == null) {
+    return;
+  }
+  papiNode.behaviors
+    .filter(b => b.name === 'origin')
+    .forEach(b => {
+      originsList.push(b.options.hostname);
+    });
+
+  papiNode.children.forEach(c => {
+    populateOrigins(c, originsList);
+  });
+}
+
+function getOriginsForPapiRules(papiRules) {
+  var o = [];
+  populateOrigins(papiRules, o);
+  return o;
+}
+
 async function showAllPapiRulesHelper(sandboxId: string, sandbox) {
   var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
   var r = [];
