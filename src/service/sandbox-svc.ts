@@ -120,7 +120,7 @@ export function getRules(sandboxId: string, sandboxPropertyId: string) {
 export function updateRules(sandboxId: string, sandboxPropertyId: string, rules) {
   var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
   var body = {
-    rules
+    rules: rules.rules ? rules.rules : rules
   };
   return putJson(endpoint, body);
 }
