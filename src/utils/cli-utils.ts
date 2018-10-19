@@ -31,6 +31,10 @@ export async function spinner(func, userMsg: string = '') {
   }
 }
 
+export function toJsonPretty(obj) {
+  return JSON.stringify(obj, undefined, 2);
+}
+
 export async function progress(func, userMsg: string = '') {
   console.log(userMsg);
   var written: number = 0;

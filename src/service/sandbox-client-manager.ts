@@ -1,6 +1,7 @@
 import {SandboxDatastore} from './sandbox-datastore';
 import {SandboxRecord} from "./sandbox-record";
 import * as envUtils from '../utils/env-utils';
+import * as cliUtils from '../utils/cli-utils';
 
 const fs = require('fs');
 const unzipper = require('unzipper');
@@ -107,7 +108,7 @@ export function registerNewSandbox(sandboxid: string, jwt: string, name: string,
 
   clientConfig.jwt = jwt;
 
-  var generatedConfig = JSON.stringify(clientConfig, undefined, 2);
+  var generatedConfig = cliUtils.toJsonPretty(clientConfig);
 
   const configPath = path.join(sandboxDir, '/config.json');
   fs.writeFileSync(configPath, generatedConfig);

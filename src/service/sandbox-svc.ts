@@ -2,6 +2,7 @@ var EdgeGrid = require('edgegrid');
 import * as path from 'path';
 import * as os from 'os';
 import * as envUtils from '../utils/env-utils';
+import * as cliUtils from '../utils/cli-utils';
 
 const _edge = null;
 
@@ -42,7 +43,7 @@ function sendEdgeRequest(path: string, method: string, body, headers) {
         } else {
           try {
             var errorObj = JSON.parse(body);
-            reject(errorObj);
+            reject(cliUtils.toJsonPretty(errorObj));
           } catch (ex) {
             console.error(`got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
             reject(body);

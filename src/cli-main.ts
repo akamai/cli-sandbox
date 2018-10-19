@@ -211,7 +211,7 @@ program
       var rulesList = await getRulesForSandboxId(sandboxIdToUse);
       rulesList.forEach(o => {
         cliUtils.logWithBorder(o.title);
-        console.log(JSON.stringify(o.rules, undefined, 2));
+        console.log(cliUtils.toJsonPretty(o.rules));
       })
     } catch (e) {
       console.error(e);

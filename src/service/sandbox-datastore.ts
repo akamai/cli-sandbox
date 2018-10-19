@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import * as cliUtils from '../utils/cli-utils';
 import {SandboxRecord} from "./sandbox-record";
 
 export class SandboxDatastore {
@@ -16,7 +17,7 @@ export class SandboxDatastore {
   }
 
   private getJsonStrPretty() {
-    return JSON.stringify(this.data, undefined, 2);
+    return cliUtils.toJsonPretty(this.data);
   }
 
   private clearCurrent() {
