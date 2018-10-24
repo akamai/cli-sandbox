@@ -53,6 +53,22 @@ program
   });
 
 program
+  .command('help [command]')
+  .description('shows help information for the given command.')
+  .action(function (arg) {
+    if (!arg) {
+      program.outputHelp();
+    } else {
+      var command = program.commands.find(c => c._name == arg);
+      if (!command) {
+        console.log(`Couldn't find a command for ${arg}`);
+      } else {
+        command.outputHelp();
+      }
+    }
+  });
+
+program
   .command('install')
   .description('downloads and installs the devpops client software')
   .action(async function (dir, cmd) {
