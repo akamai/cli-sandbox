@@ -115,6 +115,7 @@ export function registerNewSandbox(sandboxid: string, jwt: string, name: string,
 
   var record = new SandboxRecord(sandboxid, folderName, true, name, jwt);
   datastore.save(record);
+  console.log(`sandbox_id: ${sandboxid} ${name} is now active`);
   return {
     configPath
   }

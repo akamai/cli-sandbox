@@ -1,12 +1,24 @@
+import {Runtime} from "inspector";
+
 const inquirer = require('inquirer');
 const Spinner = require('cli-spinner').Spinner;
 
-export function logWithBorder(str) {
+export function logWithBorder(str, type = 'log') {
   var t: string = `--- ${str} ---`;
   var border = Array(t.length).fill('-').join('');
-  console.log(border);
-  console.log(t);
-  console.log(border);
+  log(border, type);
+  log(t, type);
+  log(border, type);
+}
+
+function log(txt, type = 'log') {
+  if (type === 'log') {
+    console.log(txt);
+  } else if (type === 'err') {
+    console.error(txt);
+  } else {
+    throw `bad args: ${type}`;
+  }
 }
 
 export async function confirm(msg: string) {
@@ -21,7 +33,10 @@ export async function confirm(msg: string) {
 }
 
 export async function spinner(func, userMsg: string = '') {
-  const spinner = new Spinner(`${userMsg} %s`);
+  const spinner = new Spinner({
+    text: `${userMsg} %s`,
+    stream: process.stderr,
+  });
   spinner.setSpinnerString('|/-\\');
   spinner.start();
   try {

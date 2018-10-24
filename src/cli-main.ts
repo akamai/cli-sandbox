@@ -235,7 +235,7 @@ program
       }
       var rulesList = await getRulesForSandboxId(sandboxIdToUse);
       rulesList.forEach(o => {
-        cliUtils.logWithBorder(o.title);
+        cliUtils.logWithBorder(o.title, 'err');
         console.log(cliUtils.toJsonPretty(o.rules));
       })
     } catch (e) {
@@ -366,7 +366,7 @@ program
   .command('update [sandbox-identifier]')
   .description('updates a sandbox')
   .option('-rules, --rules <file>', 'papi json file')
-  .option('-c, --clonable <boolean>', 'make this sandbox clonable')
+  .option('-c, --clonable <boolean>', 'make this sandbox clonable (Y/N)')
   .option('-n, --sandboxName <string>', 'name of sandbox')
   .option('-h, --requestHostnames <string>', 'comma separated list of request hostnames')
   .action(async function (arg, options) {
