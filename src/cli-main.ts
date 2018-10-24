@@ -120,7 +120,8 @@ async function showRemoteSandboxes() {
 }
 
 program
-  .command('ls')
+  .command('list')
+  .alias('ls')
   .description('lists sandboxes that you have managed locally')
   .option('-r, --remote', 'show sandboxes from the server')
   .action(async function (options) {
