@@ -5,8 +5,8 @@ var path = require('path');
 
 const _edge = null;
 const edgeRcParams = {
-  section: 'default',
-  path: path.resolve(os.homedir(), '.edgerc'),
+  section: process.env.AKAMAI_EDGERC_SECTION || 'default',
+  path: process.env.AKAMAI_EDGERC || path.resolve(os.homedir(), '.edgerc'),
   debug: false
 };
 
