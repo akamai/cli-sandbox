@@ -550,8 +550,12 @@ program
   .description('starts the sandbox client')
   .action(async function (dir, cmd) {
     try {
-      await downloadClientIfNecessary();
-      await sandboxClientManager.executeSandboxClient();
+      if (sandboxClientManager.getAllSandboxes().length == 0) {
+        console.log('there are no sandboxes configured');
+      } else {
+        await downloadClientIfNecessary();
+        await sandboxClientManager.executeSandboxClient();
+      }
     } catch (e) {
       console.error(e);
     }
