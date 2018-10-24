@@ -337,8 +337,8 @@ function parseToBoolean(str: string) {
 program
   .command('update-property <sandbox-id> <sandbox-property-id>')
   .description('updates a sandbox-property')
-  .option('-rules, --rules <file>', 'papi json file')
-  .option('-h, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-r, --rules <file>', 'papi json file')
+  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
   .action(async function (sandboxId, sandboxPropertyId, options) {
     var rules = options.rules;
     var requestHostnames = options.requestHostnames;
@@ -365,10 +365,10 @@ async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxI
 program
   .command('update [sandbox-identifier]')
   .description('updates a sandbox')
-  .option('-rules, --rules <file>', 'papi json file')
+  .option('-r, --rules <file>', 'papi json file')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable (Y/N)')
   .option('-n, --sandboxName <string>', 'name of sandbox')
-  .option('-h, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
   .action(async function (arg, options) {
     helpExitOnNoArgs(options);
     try {
@@ -487,11 +487,11 @@ async function getOriginListForSandboxId(sandboxId: string): Promise<Array<strin
 program
   .command('create')
   .description('create a new sandbox')
-  .option('-rules, --fromRules <file>', 'papi json file')
+  .option('-r, --fromRules <file>', 'papi json file')
   .option('-p, --fromProperty <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --sandboxName <string>', 'name of sandbox')
-  .option('-hostnames, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
   .action(async function (options) {
     helpExitOnNoArgs(options);
     try {
