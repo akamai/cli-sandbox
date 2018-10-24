@@ -1,28 +1,13 @@
-var EdgeGrid = require('edgegrid');
-import * as path from 'path';
-import * as os from 'os';
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 
-const _edge = null;
-
-function getEdgeLazy() {
-  if (_edge != null) {
-    return _edge;
-  }
-  return new EdgeGrid({
-    path: path.resolve(os.homedir(), '.edgerc'),
-    section: 'default',
-    debug: envUtils.isDebugMode()
-  });
-}
 
 function isOkStatus(code) {
   return code >= 200 && code < 300;
 }
 
 function sendEdgeRequest(path: string, method: string, body, headers) {
-  const edge = getEdgeLazy();
+  const edge = envUtils.getEdgeGrid();
   return new Promise(
     (resolve, reject) => {
       edge.auth({

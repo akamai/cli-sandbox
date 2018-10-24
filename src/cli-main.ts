@@ -47,7 +47,15 @@ var program = require('commander');
 program
   .version(pkginfo.version)
   .description(pkginfo.description)
-  .option('-d, --debug', 'show debug information')
+  .option('--debug', 'show debug information')
+  .option('--edgerc <path>', 'use edgerc file for command')
+  .option('--section <name>', 'use this section in edgerc file')
+  .on("option:edgerc", function (edgeRcFilePath) {
+    envUtils.setEdgeRcFilePath(edgeRcFilePath);
+  })
+  .on("option:section", function (section) {
+    envUtils.setEdgeRcSection(section);
+  })
   .on("option:debug", function () {
     envUtils.setDebugMode(true);
   });
@@ -465,7 +473,7 @@ async function createFromProperty(propertySpecifier: string, hostnames: Array<st
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
 }
 
-async function getOriginListForSandboxId(sandboxId: string) : Promise<Array<string>> {
+async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
   var rulesList = await getRulesForSandboxId(sandboxId);
   const origins = new Set();
   rulesList.forEach(entry => {

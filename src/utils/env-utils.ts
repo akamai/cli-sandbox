@@ -1,14 +1,36 @@
+var EdgeGrid = require('edgegrid');
+import * as os from 'os';
 var findJavaHome = require('find-java-home');
 var path = require('path');
 
-var debugMode: boolean = false;
+const _edge = null;
+const edgeRcParams = {
+  section: 'default',
+  path: path.resolve(os.homedir(), '.edgerc'),
+  debug: false
+};
+
+export function getEdgeGrid() {
+  if (_edge != null) {
+    return _edge;
+  }
+  return new EdgeGrid(edgeRcParams);
+}
 
 export function setDebugMode(debug: boolean) {
-  debugMode = debug;
+  edgeRcParams.debug = debug;
+}
+
+export function setEdgeRcSection(section: string) {
+  edgeRcParams.section = section;
+}
+
+export function setEdgeRcFilePath(path: string) {
+  edgeRcParams.path = path;
 }
 
 export function isDebugMode() {
-  return debugMode;
+  return edgeRcParams.debug;
 }
 
 export function getNodeVersion() {
