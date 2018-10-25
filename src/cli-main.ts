@@ -367,7 +367,7 @@ program
   .description('updates a sandbox')
   .option('-r, --rules <file>', 'papi json file')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable (Y/N)')
-  .option('-n, --sandboxName <string>', 'name of sandbox')
+  .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .action(async function (arg, options) {
     helpExitOnNoArgs(options);
@@ -378,8 +378,8 @@ program
       if (options.clonable) {
         sandbox.isClonable = parseToBoolean(options.clonable);
       }
-      if (options.sandboxName) {
-        sandbox.name = options.sandboxName;
+      if (options.name) {
+        sandbox.name = options.name;
       }
 
       await cliUtils.spinner(sandboxSvc.updateSandbox(sandbox), `updating sandbox_id: ${sandbox.sandboxId}`);
@@ -414,14 +414,14 @@ function parseHostnameCsv(csv) {
 program
   .command('clone <sandbox-identifier>')
   .description('clones a sandbox')
-  .option('-n, --sandboxName <string>', 'name of sandbox')
+  .option('-n, --name <string>', 'name of sandbox')
   .action(async function (arg, options) {
     try {
       const sandboxId = getSandboxIdFromIdentifier(arg);
-      if (!options.sandboxName) {
-        logAndExit('parameter --sandboxName is required');
+      if (!options.name) {
+        logAndExit('parameter --name is required');
       }
-      const name = options.sandboxName;
+      const name = options.name;
       const cloneResponse = await cliUtils.spinner(sandboxSvc.cloneSandbox(sandboxId, name));
 
       console.log('building origin list');
@@ -487,32 +487,32 @@ async function getOriginListForSandboxId(sandboxId: string): Promise<Array<strin
 program
   .command('create')
   .description('create a new sandbox')
-  .option('-r, --fromRules <file>', 'papi json file')
-  .option('-p, --fromProperty <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-r, --rules <file>', 'papi json file')
+  .option('-p, --property <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
-  .option('-n, --sandboxName <string>', 'name of sandbox')
+  .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .action(async function (options) {
     helpExitOnNoArgs(options);
     try {
-      const papiFilePath = options.fromRules;
-      const name = options.sandboxName;
+      const papiFilePath = options.rules;
+      const name = options.name;
       const hostnamesCsv = options.requesthostnames;
       const isClonable = !!options.clonable ? parseToBoolean(options.clonable) : false;
       if (!hostnamesCsv) {
         logAndExit('--requesthostnames must be specified');
       }
       const hostnames = parseHostnameCsv(hostnamesCsv);
-      const propertySpecifier = options.fromProperty;
+      const propertySpecifier = options.property;
 
       //validation
       if (!name) {
         logAndExit(`You must provide a name for your sandbox`);
       }
       if (propertySpecifier && papiFilePath) {
-        logAndExit(`Both --fromProperty and --fromRules were specified. Pick only one of those arguments`)
+        logAndExit(`Both --property and --rules were specified. Pick only one of those arguments`)
       } else if (!propertySpecifier && !papiFilePath) {
-        logAndExit(`Unable to build sandbox. Must specify either --fromProperty or --fromRules`);
+        logAndExit(`Unable to build sandbox. Must specify either --property or --rules`);
       }
 
       var r = null;
