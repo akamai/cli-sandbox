@@ -338,10 +338,10 @@ program
   .command('update-property <sandbox-id> <sandbox-property-id>')
   .description('updates a sandbox-property')
   .option('-r, --rules <file>', 'papi json file')
-  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .action(async function (sandboxId, sandboxPropertyId, options) {
     var rules = options.rules;
-    var requestHostnames = options.requestHostnames;
+    var requestHostnames = options.requesthostnames;
     try {
       await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
       console.log(`successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
@@ -368,7 +368,7 @@ program
   .option('-r, --rules <file>', 'papi json file')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable (Y/N)')
   .option('-n, --sandboxName <string>', 'name of sandbox')
-  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .action(async function (arg, options) {
     helpExitOnNoArgs(options);
     try {
@@ -384,12 +384,12 @@ program
 
       await cliUtils.spinner(sandboxSvc.updateSandbox(sandbox), `updating sandbox_id: ${sandbox.sandboxId}`);
 
-      const propertyChange: boolean = !!options.requestHostnames || !!options.rules;
+      const propertyChange: boolean = !!options.requesthostnames || !!options.rules;
       if (propertyChange && sandbox.properties.length > 1) {
         logAndExit(`Unable to update property as multiple were found (${sandbox.properties.length}). Please use update-property.`);
       }
       const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
-      await updateHostnamesAndRules(options.requestHostnames, options.rules, sandboxId, sandboxPropertyId);
+      await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
       console.log(`successfully updated sandbox_id: ${sandboxId}`)
     } catch (e) {
       console.log(e);
@@ -491,16 +491,16 @@ program
   .option('-p, --fromProperty <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --sandboxName <string>', 'name of sandbox')
-  .option('-H, --requestHostnames <string>', 'comma separated list of request hostnames')
+  .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .action(async function (options) {
     helpExitOnNoArgs(options);
     try {
       const papiFilePath = options.fromRules;
       const name = options.sandboxName;
-      const hostnamesCsv = options.requestHostnames;
+      const hostnamesCsv = options.requesthostnames;
       const isClonable = !!options.clonable ? parseToBoolean(options.clonable) : false;
       if (!hostnamesCsv) {
-        logAndExit('--requestHostnames must be specified');
+        logAndExit('--requesthostnames must be specified');
       }
       const hostnames = parseHostnameCsv(hostnamesCsv);
       const propertySpecifier = options.fromProperty;
