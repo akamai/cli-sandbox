@@ -1,0 +1,47 @@
+{
+  "sandbox": {
+    "name": "example sandbox",
+    "isClonable": "true",
+    "sandboxProperties": [
+      {
+        "fromProperty": {
+          "hostname": "www.example.com",
+          "propertyVersion": 2
+        },
+        "requestHostnames": [
+          "www.example.com",
+          "blog.example.com"
+        ]
+      },
+      {
+        "papiRulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "img.example.com"
+        ]
+      },
+      {
+        "papiRulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "content.example.com"
+        ]
+      }
+    ]
+  },
+  "connectorConfig" : {
+    "connectorServerInfo": {
+      "secure": false,
+      "port": 9550,
+      "host": "127.0.0.1"
+    },
+    "originMappings": [
+      {
+        "from": "origin-www.example.com",
+        "to": {
+          "secure": false,
+          "port": 8080,
+          "host": "localhost"
+        }
+      }
+    ]
+  }
+}
