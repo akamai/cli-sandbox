@@ -39,6 +39,12 @@ if (!fs.existsSync(SANDBOXES_DIR)) {
 
 const datastore = new SandboxDatastore(DATASTORE_FILE_PATH);
 
+const DEFAULT_ORIGIN_TARGET = {
+  secure: false,
+  port: 80,
+  host: '<target hostname>'
+};
+
 export async function downloadClient() {
   console.log("downloading sandbox client...");
   await download(DOWNLOAD_URL, DOWNLOAD_DIR);
@@ -78,37 +84,54 @@ function getClientTemplatePath() {
 function buildClientConfig(origins: Array<string>) {
   var template: string = fs.readFileSync(getClientTemplatePath()).toString();
   var clientConfig = JSON.parse(template);
-  const defaultTo = {
-    secure: false,
-    port: 80,
-    host: '<target hostname>'
-  };
   if (!origins || origins.length == 0) {
     clientConfig.originMappings.push({
       from: '<ORIGIN HOSTNAME>',
-      to: defaultTo
+      to: DEFAULT_ORIGIN_TARGET
     });
   } else {
    origins.forEach(o => {
      clientConfig.originMappings.push({
        from: o,
-       to: defaultTo
+       to: DEFAULT_ORIGIN_TARGET
      });
    });
   }
   return clientConfig;
 }
 
-export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>) {
+function mergeOrigins(clientConfig, origins: Array<string>) {
+  if (origins == null || origins.length == 0) {
+    return;
+  }
+  var inCc = new Set();
+  clientConfig.originMappings.forEach(om => inCc.add(om.from.trim()));
+
+  origins.forEach(o => {
+    if (!inCc.has(o)) {
+      clientConfig.originMappings.push({
+        from: o,
+        to: DEFAULT_ORIGIN_TARGET
+      });
+    }
+  })
+}
+
+export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>, clientConfig = null) {
   const folderName = name;
   const sandboxDir = path.join(SANDBOXES_DIR, folderName);
   fs.mkdirSync(sandboxDir);
 
-  const clientConfig: any = buildClientConfig(origins);
+  let cc: any = null;
+  if (!clientConfig) {
+    cc = buildClientConfig(origins);
+  } else {
+    cc = clientConfig;
+    mergeOrigins(clientConfig, origins);
+  }
+  cc.jwt = jwt;
 
-  clientConfig.jwt = jwt;
-
-  var generatedConfig = cliUtils.toJsonPretty(clientConfig);
+  var generatedConfig = cliUtils.toJsonPretty(cc);
 
   const configPath = path.join(sandboxDir, '/config.json');
   fs.writeFileSync(configPath, generatedConfig);

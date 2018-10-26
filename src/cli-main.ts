@@ -424,10 +424,7 @@ program
       const name = options.name;
       const cloneResponse = await cliUtils.spinner(sandboxSvc.cloneSandbox(sandboxId, name));
 
-      console.log('building origin list');
-      var origins: Array<string> = await getOriginListForSandboxId(cloneResponse.sandboxId);
-      var r = sandboxClientManager.registerNewSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name, origins);
-      console.info(`Successfully created sandbox_id ${cloneResponse.sandboxId}. Generated sandbox client configuration at ${r.configPath} please edit this file`);
+      await registerSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name);
     } catch (e) {
       console.log(e);
     }
@@ -511,7 +508,7 @@ function resolveRulesPath(recipeFilePath, rulesPath) {
 
 async function createFromRecipe(recipeFilePath, name, clonable) {
   if (!fs.existsSync(recipeFilePath)) {
-    logAndExit(`File ${recipeFilePath} does not exist. `);
+    logAndExit(`File ${recipeFilePath} does not exist.`);
   }
 
   const recipe = getJsonFromFile(recipeFilePath);
@@ -558,8 +555,10 @@ async function createFromRecipe(recipeFilePath, name, clonable) {
       console.error(e);
     }
   }
-
-  await registerSandbox(r.sandboxId, r.jwtToken, typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : r.sandboxId);
+  await registerSandbox(r.sandboxId,
+    r.jwtToken,
+    typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : r.sandboxId,
+    recipe.clientConfig);
 }
 
 function createRecipeProperty(rp, sandboxId) {
@@ -634,12 +633,12 @@ program
     }
   });
 
-async function registerSandbox(sandboxId: string, jwt: string, name: string) {
+async function registerSandbox(sandboxId: string, jwt: string, name: string, clientConfig = null) {
   console.log('building origin list');
   var origins: Array<string> = await getOriginListForSandboxId(sandboxId);
 
   console.log('registering sandbox in local datastore');
-  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins);
+  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig);
 
   console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
 }
