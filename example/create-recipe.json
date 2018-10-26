@@ -6,20 +6,19 @@
       {
         "property": "447903:2",
         "requestHostnames": [
-          "www.example.com",
-          "blog.example.com"
+          "localhost"
         ]
       },
       {
         "rulesPath": "./papi-rules-1.json",
         "requestHostnames": [
-          "img.example.com"
+          "localhost1"
         ]
       },
       {
         "rulesPath": "./papi-rules-1.json",
         "requestHostnames": [
-          "content.example.com"
+          "localhost2"
         ]
       }
     ]

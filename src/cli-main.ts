@@ -433,6 +433,14 @@ program
     }
   });
 
+async function addPropertyFromRules(sandboxId: string, papiFilePath: string, hostnames: Array<string>) {
+  if (!fs.existsSync(papiFilePath)) {
+    logAndExit(`file: ${papiFilePath} does not exist`);
+  }
+  const papiJson = getJsonFromFile(papiFilePath);
+  return await cliUtils.spinner(sandboxSvc.addPropertyFromRules(sandboxId, hostnames, papiJson), `adding sandbox property to ${sandboxId}`);
+}
+
 async function createFromRules(papiFilePath: string, hostnames: Array<string>, isClonable: boolean, name: string) {
   if (!fs.existsSync(papiFilePath)) {
     logAndExit(`file: ${papiFilePath} does not exist`);
@@ -471,9 +479,15 @@ function parsePropertySpecifier(propertySpecifier) {
   return propertySpecObj;
 }
 
+async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Array<string>, propertySpecifier: string) {
+  const propertySpecObj = parsePropertySpecifier(propertySpecifier);
+  const msg = `adding property from: ${JSON.stringify(propertySpecObj)}`;
+  return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, propertySpecObj), msg);
+}
+
 async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
   const propertySpecObj = parsePropertySpecifier(propertySpecifier);
-  const msg = "Creating from: " + JSON.stringify(propertySpecObj);
+  const msg = `Creating from: ${JSON.stringify(propertySpecObj)}`;
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
 }
 
@@ -532,7 +546,7 @@ async function createFromRecipe(recipeFilePath) {
   });
 
   const firstProp = properties[0];
-  const r = await cliUtils.spinner(createRecipeProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
+  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
 
   for (var i = 1; i < properties.length; i++) {
     await cliUtils.spinner(createRecipeProperty(properties[0], sandboxRecipe), `creating sandbox & property ${i + 1} from recipe`);
@@ -541,7 +555,17 @@ async function createFromRecipe(recipeFilePath) {
   await registerSandbox(r.sandboxId, r.jwtToken, sandboxRecipe.name);
 }
 
-async function createRecipeProperty(rp, recipe) {
+async function createRecipeProperty(rp, sandboxId) {
+  if (rp.property) {
+    await cliUtils.spinner(addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.property));
+  } else if (rp.rulesPath) {
+    await cliUtils.spinner(addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames));
+  } else {
+    logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
+  }
+}
+
+async function createRecipeSandboxAndProperty(rp, recipe) {
   if (rp.property) {
     await cliUtils.spinner(createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name));
   } else if (rp.rulesPath) {
@@ -550,7 +574,6 @@ async function createRecipeProperty(rp, recipe) {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
 }
-
 
 program
   .command('create')
