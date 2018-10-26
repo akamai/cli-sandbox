@@ -535,7 +535,7 @@ async function createFromRecipe(recipeFilePath, name, clonable) {
   });
 
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
-  sandboxRecipe.name = name || sandboxRecipe.name;
+  sandboxRecipe.name = name;
 
   var idx = 0;
   properties.forEach(p => {
@@ -553,13 +553,13 @@ async function createFromRecipe(recipeFilePath, name, clonable) {
 
   for (var i = 1; i < properties.length; i++) {
     try {
-      await cliUtils.spinner(createRecipeProperty(properties[0], r.sandboxId), `creating property ${i + 1} from recipe`);
+      await cliUtils.spinner(createRecipeProperty(properties[i], r.sandboxId), `creating property ${i + 1} from recipe`);
     } catch (e) {
       console.error(e);
     }
   }
 
-  await registerSandbox(r.sandboxId, r.jwtToken, sandboxRecipe.name);
+  await registerSandbox(r.sandboxId, r.jwtToken, typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : r.sandboxId);
 }
 
 function createRecipeProperty(rp, sandboxId) {
