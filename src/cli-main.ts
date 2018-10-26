@@ -509,7 +509,7 @@ function resolveRulesPath(recipeFilePath, rulesPath) {
   return path.join(path.dirname(recipeFilePath), rulesPath);
 }
 
-async function createFromRecipe(recipeFilePath) {
+async function createFromRecipe(recipeFilePath, name, clonable) {
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist. `);
   }
@@ -534,6 +534,9 @@ async function createFromRecipe(recipeFilePath) {
     }
   });
 
+  sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
+  sandboxRecipe.name = name || sandboxRecipe.name;
+
   var idx = 0;
   properties.forEach(p => {
     if (!p.rulesPath && !p.property) {
@@ -549,27 +552,31 @@ async function createFromRecipe(recipeFilePath) {
   const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
 
   for (var i = 1; i < properties.length; i++) {
-    await cliUtils.spinner(createRecipeProperty(properties[0], sandboxRecipe), `creating sandbox & property ${i + 1} from recipe`);
+    try {
+      await cliUtils.spinner(createRecipeProperty(properties[0], r.sandboxId), `creating property ${i + 1} from recipe`);
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   await registerSandbox(r.sandboxId, r.jwtToken, sandboxRecipe.name);
 }
 
-async function createRecipeProperty(rp, sandboxId) {
+function createRecipeProperty(rp, sandboxId) {
   if (rp.property) {
-    await cliUtils.spinner(addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.property));
+    return addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.property);
   } else if (rp.rulesPath) {
-    await cliUtils.spinner(addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames));
+    return addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames);
   } else {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
 }
 
-async function createRecipeSandboxAndProperty(rp, recipe) {
+function createRecipeSandboxAndProperty(rp, recipe) {
   if (rp.property) {
-    await cliUtils.spinner(createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name));
+    return createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name);
   } else if (rp.rulesPath) {
-    await cliUtils.spinner(createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name));
+    return createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name);
   } else {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
@@ -589,7 +596,7 @@ program
     try {
       const recipePath = options.recipe;
       if (recipePath) {
-        await createFromRecipe(recipePath);
+        await createFromRecipe(recipePath, options.name, options.clonable);
         return;
       }
 
