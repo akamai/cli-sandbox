@@ -87,6 +87,22 @@ export function createFromRules(papiRules, requestHostnames, name, isClonable) {
   return postJson('/devpops-api/v1/sandboxes', bodyObj);
 }
 
+export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRules) {
+  var bodyObj = {
+    requestHostnames: requestHostnames,
+    createFromRules: papiRules
+  };
+  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/properties`, bodyObj);
+}
+
+export function addPropertyFromProperty(sandboxId: string, requestHostnames, fromPropertyObj) {
+  var bodyObj = {
+    requestHostnames: requestHostnames,
+    createFromProperty: fromPropertyObj,
+  };
+  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/properties`, bodyObj);
+}
+
 export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
   var bodyObj = {
     name: name,

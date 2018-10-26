@@ -357,7 +357,7 @@ async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxI
     await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, property), `updating sandboxPropertyId: ${sandboxPropertyId}`);
   }
   if (rulesFilePath) {
-    const rules = getPapiRulesFromFile(rulesFilePath);
+    const rules = getJsonFromFile(rulesFilePath);
     await cliUtils.spinner(sandboxSvc.updateRules(sandboxId, sandboxPropertyId, rules), 'updating rules');
   }
 }
@@ -396,11 +396,11 @@ program
     }
   });
 
-function getPapiRulesFromFile(papiFilePath) {
+function getJsonFromFile(papiFilePath) {
   try {
     return JSON.parse(readFileAsString(papiFilePath));
   } catch (ex) {
-    console.error('papi JSON file is invalid ' + ex);
+    console.error('JSON file is invalid ' + ex);
     throw ex;
   }
 }
@@ -437,11 +437,11 @@ async function createFromRules(papiFilePath: string, hostnames: Array<string>, i
   if (!fs.existsSync(papiFilePath)) {
     logAndExit(`file: ${papiFilePath} does not exist`);
   }
-  const papiJson = getPapiRulesFromFile(papiFilePath);
+  const papiJson = getJsonFromFile(papiFilePath);
   return await cliUtils.spinner(sandboxSvc.createFromRules(papiJson, hostnames, name, isClonable), "creating new sandbox");
 }
 
-async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
+function parsePropertySpecifier(propertySpecifier) {
   var propertySpec;
   var propertyVersion;
   if (propertySpecifier.indexOf(':') > -1) {
@@ -465,12 +465,15 @@ async function createFromProperty(propertySpecifier: string, hostnames: Array<st
   }
 
   propertySpecObj[key] = propertySpec;
-
-  var msg = `creating new sandbox from ${key}: ${propertySpec} `;
   if (propertyVersion) {
     propertySpecObj.propertyVersion = propertyVersion;
-    msg += `version: ${propertySpecObj.propertyVersion}`;
   }
+  return propertySpecObj;
+}
+
+async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
+  const propertySpecObj = parsePropertySpecifier(propertySpecifier);
+  const msg = "Creating from: " + JSON.stringify(propertySpecObj);
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
 }
 
@@ -484,6 +487,71 @@ async function getOriginListForSandboxId(sandboxId: string): Promise<Array<strin
   return Array.from(origins);
 }
 
+function resolveRulesPath(recipeFilePath, rulesPath) {
+  // if path is absolute then it exists
+  if (fs.existsSync(rulesPath)) {
+    return rulesPath;
+  }
+  return path.join(path.dirname(recipeFilePath), rulesPath);
+}
+
+async function createFromRecipe(recipeFilePath) {
+  if (!fs.existsSync(recipeFilePath)) {
+    logAndExit(`File ${recipeFilePath} does not exist. `);
+  }
+
+  const recipe = getJsonFromFile(recipeFilePath);
+  if (!recipe.sandbox) {
+    logAndExit(`no sandbox element found`);
+  }
+  const sandboxRecipe = recipe.sandbox;
+
+  //TODO enforce schema on recipe file
+  const properties = sandboxRecipe.properties;
+  if (!properties || properties.length == 0) {
+    logAndExit('recipe file does not contain any properties');
+  }
+  if (!sandboxRecipe.clonable) {
+    logAndExit('recipe requires field clonable');
+  }
+  properties.forEach(p => {
+    if (p.rulesPath) {
+      p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
+    }
+  });
+
+  var idx = 0;
+  properties.forEach(p => {
+    if (!p.rulesPath && !p.property) {
+      logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
+    }
+    if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
+      logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
+    }
+    idx++;
+  });
+
+  const firstProp = properties[0];
+  const r = await cliUtils.spinner(createRecipeProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
+
+  for (var i = 1; i < properties.length; i++) {
+    await cliUtils.spinner(createRecipeProperty(properties[0], sandboxRecipe), `creating sandbox & property ${i + 1} from recipe`);
+  }
+
+  await registerSandbox(r.sandboxId, r.jwtToken, sandboxRecipe.name);
+}
+
+async function createRecipeProperty(rp, recipe) {
+  if (rp.property) {
+    await cliUtils.spinner(createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name));
+  } else if (rp.rulesPath) {
+    await cliUtils.spinner(createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name));
+  } else {
+    logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
+  }
+}
+
+
 program
   .command('create')
   .description('create a new sandbox')
@@ -492,9 +560,16 @@ program
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
+  .option('--recipe <path>', 'path to recipe json file')
   .action(async function (options) {
     helpExitOnNoArgs(options);
     try {
+      const recipePath = options.recipe;
+      if (recipePath) {
+        await createFromRecipe(recipePath);
+        return;
+      }
+
       const papiFilePath = options.rules;
       const name = options.name;
       const hostnamesCsv = options.requesthostnames;
@@ -522,17 +597,22 @@ program
         r = await createFromProperty(propertySpecifier, hostnames, isClonable, name);
       }
 
-      console.log('building origin list');
-      var origins: Array<string> = await getOriginListForSandboxId(r.sandboxId);
+      await registerSandbox(r.sandboxId, r.jwtToken, name);
 
-      console.log('registering sandbox in local datastore');
-      var registration = sandboxClientManager.registerNewSandbox(r.sandboxId, r.jwtToken, name, origins);
-
-      console.info(`Successfully created sandbox_id ${r.sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
     } catch (e) {
       console.log(e);
     }
   });
+
+async function registerSandbox(sandboxId: string, jwt: string, name: string) {
+  console.log('building origin list');
+  var origins: Array<string> = await getOriginListForSandboxId(sandboxId);
+
+  console.log('registering sandbox in local datastore');
+  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins);
+
+  console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
+}
 
 async function downloadClientIfNecessary() {
   try {

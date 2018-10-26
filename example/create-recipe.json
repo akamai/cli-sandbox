@@ -1,26 +1,23 @@
 {
   "sandbox": {
     "name": "example sandbox",
-    "isClonable": "true",
-    "sandboxProperties": [
+    "clonable": "true",
+    "properties": [
       {
-        "fromProperty": {
-          "hostname": "www.example.com",
-          "propertyVersion": 2
-        },
+        "property": "447903:2",
         "requestHostnames": [
           "www.example.com",
           "blog.example.com"
         ]
       },
       {
-        "papiRulesPath": "./papi-rules-1.json",
+        "rulesPath": "./papi-rules-1.json",
         "requestHostnames": [
           "img.example.com"
         ]
       },
       {
-        "papiRulesPath": "./papi-rules-1.json",
+        "rulesPath": "./papi-rules-1.json",
         "requestHostnames": [
           "content.example.com"
         ]
