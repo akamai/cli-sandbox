@@ -1,6 +1,5 @@
 {
   "sandbox": {
-    "name": "example sandbox",
     "clonable": "true",
     "properties": [
       {
@@ -23,7 +22,7 @@
       }
     ]
   },
-  "connectorConfig" : {
+  "clientConfig" : {
     "connectorServerInfo": {
       "secure": false,
       "port": 9550,

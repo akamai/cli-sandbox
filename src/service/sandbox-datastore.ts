@@ -25,7 +25,7 @@ export class SandboxDatastore {
     var ds = this;
     keysLst.forEach(k => {
       ds.data[k].current = false;
-    })
+    });
   }
 
   private getDataArray(): Array<SandboxRecord> {
