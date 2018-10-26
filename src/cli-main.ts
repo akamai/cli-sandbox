@@ -13,6 +13,15 @@ const pkginfo = require('../package.json');
 
 const cTable = require('console.table');
 
+
+const Validator = require('jsonschema').Validator;
+const jsonSchemaValidator = new Validator();
+const recipeFileSchema = require('../schemas/recipe.json');
+
+function validateSchema(json) {
+  return jsonSchemaValidator.validate(json, recipeFileSchema);
+}
+
 function logAndExit(msg: string) {
   console.log(msg);
   process.exit();
@@ -506,12 +515,20 @@ function resolveRulesPath(recipeFilePath, rulesPath) {
   return path.join(path.dirname(recipeFilePath), rulesPath);
 }
 
+function validateRecipeSchema(recipe) {
+  var r = validateSchema(recipe);
+  if (r.errors.length > 0) {
+    logAndExit(`there are problems with your recipe file\n ${r}`);
+  }
+}
+
 async function createFromRecipe(recipeFilePath, name, clonable) {
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist.`);
   }
 
   const recipe = getJsonFromFile(recipeFilePath);
+  validateRecipeSchema(recipe);
   if (!recipe.sandbox) {
     logAndExit(`no sandbox element found`);
   }

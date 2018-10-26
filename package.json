@@ -26,7 +26,8 @@
     "find-java-home": "0.2.0",
     "fs-extra": "7.0.0",
     "cli-spinner": "0.2.8",
-    "validator": "10.8.0"
+    "validator": "10.8.0",
+    "jsonschema": "1.2.4"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.91",
