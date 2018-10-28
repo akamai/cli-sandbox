@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+import * as fs from 'fs';
+import * as path from "path";
+import * as os from "os";
+
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
 if (!CLI_CACHE_PATH) {
@@ -14,17 +18,14 @@ if (!fs.existsSync(edgeRcPath)) {
   logAndExit(`Couldn't find .edgerc for Akamai {OPEN} client. Please configure your .edgerc file at this path: ${edgeRcPath}`);
 }
 
+import * as envUtils from './utils/env-utils';
+import * as cliUtils from './utils/cli-utils';
+import * as sandboxClientManager from './service/sandbox-client-manager';
+import * as sandboxSvc from './service/sandbox-svc'
+
 if (envUtils.getNodeVersion() < 8) {
   logAndExit("The Akamai Sandbox CLI requires Node 8 or later.");
 }
-
-import * as envUtils from './utils/env-utils';
-import * as cliUtils from './utils/cli-utils';
-import * as fs from 'fs';
-import * as sandboxClientManager from './service/sandbox-client-manager';
-import * as sandboxSvc from './service/sandbox-svc'
-import * as path from "path";
-import * as os from "os";
 
 const util = require('util');
 const validator = require('validator');
