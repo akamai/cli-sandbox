@@ -1,4 +1,23 @@
 #!/usr/bin/env node
+const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
+
+if (!CLI_CACHE_PATH) {
+  logAndExit("error AKAMAI_CLI_CACHE_PATH is not set");
+}
+
+if (!fs.existsSync(CLI_CACHE_PATH)) {
+  logAndExit(`AKAMAI_CLI_CACHE_PATH is set to ${CLI_CACHE_PATH} but this directory does not exist`);
+}
+
+const edgeRcPath = path.resolve(os.homedir(), '.edgerc');
+if (!fs.existsSync(edgeRcPath)) {
+  logAndExit(`Couldn't find .edgerc for Akamai {OPEN} client. Please configure your .edgerc file at this path: ${edgeRcPath}`);
+}
+
+if (envUtils.getNodeVersion() < 8) {
+  logAndExit("The Akamai Sandbox CLI requires Node 8 or later.");
+}
+
 import * as envUtils from './utils/env-utils';
 import * as cliUtils from './utils/cli-utils';
 import * as fs from 'fs';
@@ -13,7 +32,6 @@ const pkginfo = require('../package.json');
 
 const cTable = require('console.table');
 
-
 const Validator = require('jsonschema').Validator;
 const jsonSchemaValidator = new Validator();
 const recipeFileSchema = require('../schemas/recipe.json');
@@ -25,25 +43,6 @@ function validateSchema(json) {
 function logAndExit(msg: string) {
   console.log(msg);
   process.exit();
-}
-
-if (envUtils.getNodeVersion() < 8) {
-  logAndExit("The Akamai Sandbox CLI requires Node 8 or later.");
-}
-
-const edgeRcPath = path.resolve(os.homedir(), '.edgerc');
-if (!fs.existsSync(edgeRcPath)) {
-  logAndExit(`Couldn't find .edgerc for Akamai {OPEN} client. Please configure your .edgerc file at this path: ${edgeRcPath}`);
-}
-
-const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
-
-if (!CLI_CACHE_PATH) {
-  logAndExit("error AKAMAI_CLI_CACHE_PATH is not set");
-}
-
-if (!fs.existsSync(CLI_CACHE_PATH)) {
-  logAndExit(`AKAMAI_CLI_CACHE_PATH is set to ${CLI_CACHE_PATH} but this directory does not exist`);
 }
 
 function readFileAsString(path) {
