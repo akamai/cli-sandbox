@@ -1,6 +1,6 @@
 {
   "sandbox": {
-    "clonable": "true",
+    "clonable": true,
     "properties": [
       {
         "property": "447903:2",
