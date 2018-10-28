@@ -55,6 +55,78 @@
       "required": [
         "clonable"
       ]
+    },
+    "clientConfig": {
+      "type": "object",
+      "description": "object that specifies the information about how the sandbox client should be configured",
+      "properties": {
+        "connectorServerInfo": {
+          "description": "Information about how traffic should be served by the sandbox connector",
+          "type": "object",
+          "properties": {
+            "secure": {
+              "type": "boolean"
+            },
+            "port": {
+              "type": "integer"
+            },
+            "host": {
+              "type": "string"
+            }
+          }
+        },
+        "advanced": {
+          "type": "object",
+          "properties": {
+            "requestDetail": {
+              "type": "boolean"
+            }
+          }
+        },
+        "originMappings": {
+          "type": "array",
+          "items": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "to": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "secure": {
+                        "type": "boolean"
+                      },
+                      "port": {
+                        "type": "integer"
+                      },
+                      "host": {
+                        "type": "string"
+                      },
+                      "hostHeader": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "secure",
+                      "port",
+                      "host"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "connectorServerInfo",
+        "originMappings"
+      ]
     }
   },
   "required": [
