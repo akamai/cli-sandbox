@@ -55,7 +55,7 @@ function getJson(path: string) {
 }
 
 function del(path: string) {
-  sendEdgeRequest(path, 'DELETE', '', {});
+  return sendEdgeRequest(path, 'DELETE', '', {});
 }
 
 export function deleteSandbox(sandboxId: string) {

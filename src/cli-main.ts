@@ -328,6 +328,9 @@ program
   });
 
 function parseToBoolean(str: string) {
+  if (!str) {
+    return false;
+  }
   var r = str.trim().toLowerCase();
   var strToBool = new Map([
     ['true', true],
@@ -598,7 +601,7 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
     logAndExit('Update command is unsupported with cloneFrom recipe');
   }
 
-  if (!recipe.properties) {
+  if (!sandboxRecipe.properties) {
     logAndExit('Missing properties unable to perform operation');
   }
 
@@ -692,7 +695,7 @@ program
       const papiFilePath = options.rules;
       const name = options.name;
       const hostnamesCsv = options.requesthostnames;
-      const isClonable = !!options.clonable ? parseToBoolean(options.clonable) : false;
+      const isClonable = parseToBoolean(options.clonable);
       if (!hostnamesCsv) {
         logAndExit('--requesthostnames must be specified');
       }
