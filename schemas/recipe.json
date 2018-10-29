@@ -15,6 +15,17 @@
           "description": "Indicates whether the sandbox can be copied for another developer's use.",
           "type": "boolean"
         },
+        "cloneFrom": {
+          "type": "object",
+          "properties": {
+            "sandboxId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sandboxId"
+          ]
+        },
         "properties": {
           "description": "A list of the properties available for testing in the sandbox environment. A sandbox can contain more than one property.",
           "type": "array",
@@ -37,7 +48,7 @@
             "required": [
               "requestHostnames"
             ],
-            "anyOf": [
+            "oneOf": [
               {
                 "required": [
                   "rulesPath"
@@ -54,9 +65,23 @@
       },
       "required": [
         "clonable"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "properties"
+          ]
+        },
+        {
+          "required": [
+            "cloneFrom"
+          ]
+        }
       ]
     },
-    "clientConfig": {"$ref": "/clientConfig"}
+    "clientConfig": {
+      "$ref": "/clientConfig"
+    }
   },
   "required": [
     "sandbox"

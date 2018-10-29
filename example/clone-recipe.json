@@ -1,0 +1,25 @@
+{
+  "sandbox": {
+    "clonable": true,
+    "cloneFrom": {
+      "sandboxId": "c338caaf-c57f-47b1-8c8c-3ce63707c6b8"
+    }
+  },
+  "clientConfig" : {
+    "connectorServerInfo": {
+      "secure": false,
+      "port": 9550,
+      "host": "127.0.0.1"
+    },
+    "originMappings": [
+      {
+        "from": "origin-www.example.com",
+        "to": {
+          "secure": false,
+          "port": 8080,
+          "host": "localhost"
+        }
+      }
+    ]
+  }
+}
