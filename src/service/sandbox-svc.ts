@@ -58,9 +58,10 @@ export function deleteSandbox(sandboxId: string) {
   return sendEdgeRequest(`/devpops-api/v1/sandboxes/${sandboxId}`, 'DELETE', '', {});
 }
 
-export function cloneSandbox(sandboxId: string, name: string) {
+export function cloneSandbox(sandboxId: string, name: string, clonable=false) {
   const body = {
-    name
+    name,
+    isClonable: clonable
   };
   return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/clone`, body);
 }

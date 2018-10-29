@@ -557,10 +557,20 @@ async function createFromPropertiesRecipe(recipeFilePath, recipe) {
       console.error(e);
     }
   }
-  await registerSandbox(r.sandboxId,
-    r.jwtToken,
-    typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : r.sandboxId,
-    recipe.clientConfig);
+  return r;
+}
+
+function createFromCloneRecipe(recipe) {
+  const cloneFrom = recipe.sandbox.cloneFrom;
+  if (!cloneFrom) {
+    logAndExit('missing sandbox.cloneFrom');
+  }
+  const sandboxId = cloneFrom.sandboxId;
+  if (!sandboxId) {
+    logAndExit('missing cloneFrom.sandboxId');
+  }
+  const clonable = cloneFrom.clonable;
+  return sandboxSvc.cloneSandbox(sandboxId, recipe.sandbox.name, clonable);
 }
 
 async function createFromRecipe(recipeFilePath, name, clonable) {
@@ -580,7 +590,19 @@ async function createFromRecipe(recipeFilePath, name, clonable) {
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
   sandboxRecipe.name = name;
 
-  await createFromPropertiesRecipe(recipeFilePath, recipe);
+  var res = null;
+  if (sandboxRecipe.properties) {
+    res = await createFromPropertiesRecipe(recipeFilePath, recipe);
+  } else if (sandboxRecipe.cloneFrom) {
+    res = await createFromCloneRecipe(recipe);
+  } else {
+    logAndExit("Error: couldn't find either sandbox.properties or sandbox.cloneFrom");
+  }
+
+  await registerSandbox(res.sandboxId,
+    res.jwtToken,
+    typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : res.sandboxId,
+    recipe.clientConfig);
 }
 
 function createRecipeProperty(rp, sandboxId) {
