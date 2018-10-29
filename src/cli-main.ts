@@ -36,6 +36,8 @@ const cTable = require('console.table');
 const Validator = require('jsonschema').Validator;
 const jsonSchemaValidator = new Validator();
 const recipeFileSchema = require('../schemas/recipe.json');
+const clientConfigSchema = require('../schemas/client-config.json');
+jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
 
 function validateSchema(json) {
   return jsonSchemaValidator.validate(json, recipeFileSchema);
