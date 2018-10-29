@@ -524,34 +524,17 @@ function validateRecipeSchema(recipe) {
   }
 }
 
-async function createFromRecipe(recipeFilePath, name, clonable) {
-  if (!fs.existsSync(recipeFilePath)) {
-    logAndExit(`File ${recipeFilePath} does not exist.`);
-  }
-
-  const recipe = getJsonFromFile(recipeFilePath);
-  validateRecipeSchema(recipe);
-  if (!recipe.sandbox) {
-    logAndExit(`no sandbox element found`);
-  }
+async function createFromPropertiesRecipe(recipeFilePath, recipe) {
   const sandboxRecipe = recipe.sandbox;
-
-  //TODO enforce schema on recipe file
   const properties = sandboxRecipe.properties;
   if (!properties || properties.length == 0) {
     logAndExit('recipe file does not contain any properties');
-  }
-  if (!sandboxRecipe.clonable) {
-    logAndExit('recipe requires field clonable');
   }
   properties.forEach(p => {
     if (p.rulesPath) {
       p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
     }
   });
-
-  sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
-  sandboxRecipe.name = name;
 
   var idx = 0;
   properties.forEach(p => {
@@ -578,6 +561,26 @@ async function createFromRecipe(recipeFilePath, name, clonable) {
     r.jwtToken,
     typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : r.sandboxId,
     recipe.clientConfig);
+}
+
+async function createFromRecipe(recipeFilePath, name, clonable) {
+  if (!fs.existsSync(recipeFilePath)) {
+    logAndExit(`File ${recipeFilePath} does not exist.`);
+  }
+
+  const recipe = getJsonFromFile(recipeFilePath);
+  validateRecipeSchema(recipe);
+  if (!recipe.sandbox) {
+    logAndExit(`no sandbox element found`);
+  }
+  const sandboxRecipe = recipe.sandbox;
+  if (!sandboxRecipe.clonable) {
+    logAndExit('recipe requires field clonable');
+  }
+  sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
+  sandboxRecipe.name = name;
+
+  await createFromPropertiesRecipe(recipeFilePath, recipe);
 }
 
 function createRecipeProperty(rp, sandboxId) {
