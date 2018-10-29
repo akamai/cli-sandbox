@@ -54,6 +54,10 @@ function getJson(path: string) {
   return sendEdgeRequest(path, 'GET', '', {});
 }
 
+function del(path: string) {
+  sendEdgeRequest(path, 'DELETE', '', {});
+}
+
 export function deleteSandbox(sandboxId: string) {
   return sendEdgeRequest(`/devpops-api/v1/sandboxes/${sandboxId}`, 'DELETE', '', {});
 }
@@ -135,4 +139,9 @@ export function getProperty(sandboxId: string, sandboxPropertyId: string) {
 export function updateProperty(sandboxId, propertyObj) {
   var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${propertyObj.sandboxPropertyId}`;
   return putJson(endpoint, propertyObj);
+}
+
+export function deleteProperty(sandboxId, sandboxPropertyId) {
+  const endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
+  return del(endpoint);
 }

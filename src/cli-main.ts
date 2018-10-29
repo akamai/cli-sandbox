@@ -2,6 +2,7 @@
 import * as fs from 'fs';
 import * as path from "path";
 import * as os from "os";
+const uuidv1 = require('uuid/v1');
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
@@ -380,14 +381,20 @@ program
   .option('-c, --clonable <boolean>', 'make this sandbox clonable (Y/N)')
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
+  .option('--recipe <path>', 'path to recipe json file')
   .action(async function (arg, options) {
     helpExitOnNoArgs(options);
     try {
-
+      const clonable = parseToBoolean(options.clonable);
       const sandboxId = getSandboxIdFromIdentifier(orCurrent(arg));
+      const recipeFilePath = options.recipe;
+      if (recipeFilePath) {
+        await updateFromRecipe(sandboxId, recipeFilePath, options.name, clonable);
+        return;
+      }
       const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId), `loading sandboxId: ${sandboxId}`);
       if (options.clonable) {
-        sandbox.isClonable = parseToBoolean(options.clonable);
+        sandbox.isClonable = clonable;
       }
       if (options.name) {
         sandbox.name = options.name;
@@ -517,35 +524,9 @@ function resolveRulesPath(recipeFilePath, rulesPath) {
   return path.join(path.dirname(recipeFilePath), rulesPath);
 }
 
-function validateRecipeSchema(recipe) {
-  var r = validateSchema(recipe);
-  if (r.errors.length > 0) {
-    logAndExit(`there are problems with your recipe file\n ${r}`);
-  }
-}
-
-async function createFromPropertiesRecipe(recipeFilePath, recipe) {
+async function createFromPropertiesRecipe(recipe) {
   const sandboxRecipe = recipe.sandbox;
   const properties = sandboxRecipe.properties;
-  if (!properties || properties.length == 0) {
-    logAndExit('recipe file does not contain any properties');
-  }
-  properties.forEach(p => {
-    if (p.rulesPath) {
-      p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
-    }
-  });
-
-  var idx = 0;
-  properties.forEach(p => {
-    if (!p.rulesPath && !p.property) {
-      logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
-    }
-    if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
-      logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
-    }
-    idx++;
-  });
 
   const firstProp = properties[0];
   const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
@@ -573,26 +554,91 @@ function createFromCloneRecipe(recipe) {
   return sandboxSvc.cloneSandbox(sandboxId, recipe.sandbox.name, clonable);
 }
 
-async function createFromRecipe(recipeFilePath, name, clonable) {
+function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist.`);
   }
-
   const recipe = getJsonFromFile(recipeFilePath);
-  validateRecipeSchema(recipe);
-  if (!recipe.sandbox) {
-    logAndExit(`no sandbox element found`);
+  var r = validateSchema(recipe);
+  if (r.errors.length > 0) {
+    logAndExit(`there are problems with your recipe file\n ${r}`);
   }
   const sandboxRecipe = recipe.sandbox;
-  if (!sandboxRecipe.clonable) {
-    logAndExit('recipe requires field clonable');
-  }
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
   sandboxRecipe.name = name;
+  if (sandboxRecipe.properties) {
+    sandboxRecipe.properties.forEach(p => {
+      if (p.rulesPath) {
+        p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
+      }
+    });
+  }
+  var idx = 0;
+  sandboxRecipe.properties.forEach(p => {
+    if (!p.rulesPath && !p.property) {
+      logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
+    }
+    if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
+      logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
+    }
+    idx++;
+  });
+  if (!sandboxRecipe.properties || sandboxRecipe.properties.length == 0) {
+    logAndExit('recipe file does not contain any properties');
+  }
+
+  return recipe;
+}
+
+async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
+  const recipe = validateAndBuildRecipe(recipeFilePath, name, clonable);
+  const sandboxRecipe = recipe.sandbox;
+
+  if (recipe.sandbox.cloneFrom) {
+    logAndExit('Update command is unsupported with cloneFrom recipe');
+  }
+
+  if (!recipe.properties) {
+    logAndExit('Missing properties unable to perform operation');
+  }
+
+  const sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
+  sandbox.isClonable = recipe.clonable;
+  sandbox.name = recipe.name;
+
+  await sandboxSvc.updateSandbox(sandbox);
+
+  var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
+  const first = pIds[0];
+  for (var i = 1; i < pIds.length; i++) {
+    const propertyId = pIds[i];
+    await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, propertyId));
+  }
+
+  const propertyObj = {
+    sandboxPropertyId: first,
+    requestHostnames: [uuidv1()]
+  };
+
+  await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, propertyObj));
+
+  for (var i = 0; i < sandboxRecipe.properties.length; i++) {
+    const rp = sandboxRecipe.properties[i];
+    await cliUtils.spinner(createRecipeProperty(rp, sandboxId), `re-building property: ${i+1}`);
+  }
+
+  await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, first));
+}
+
+
+async function createFromRecipe(recipeFilePath, name, clonable) {
+  const recipe = validateAndBuildRecipe(recipeFilePath, name, clonable);
+
+  const sandboxRecipe = recipe.sandbox;
 
   var res = null;
   if (sandboxRecipe.properties) {
-    res = await createFromPropertiesRecipe(recipeFilePath, recipe);
+    res = await createFromPropertiesRecipe(recipe);
   } else if (sandboxRecipe.cloneFrom) {
     res = await createFromCloneRecipe(recipe);
   } else {
