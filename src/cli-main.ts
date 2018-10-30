@@ -575,21 +575,17 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
         p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
       }
     });
+    var idx = 0;
+    sandboxRecipe.properties.forEach(p => {
+      if (!p.rulesPath && !p.property) {
+        logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
+      }
+      if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
+        logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
+      }
+      idx++;
+    });
   }
-  var idx = 0;
-  sandboxRecipe.properties.forEach(p => {
-    if (!p.rulesPath && !p.property) {
-      logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
-    }
-    if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
-      logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
-    }
-    idx++;
-  });
-  if (!sandboxRecipe.properties || sandboxRecipe.properties.length == 0) {
-    logAndExit('recipe file does not contain any properties');
-  }
-
   return recipe;
 }
 
