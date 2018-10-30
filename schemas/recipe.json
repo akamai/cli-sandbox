@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-04-schema#",
+  "description": "Recipe file for creating Akamai Sandboxes",
+  "type": "object",
+  "properties": {
+    "sandbox": {
+      "type": "object",
+      "description": "object that specifies the information about how the sandbox should be configured",
+      "properties": {
+        "name": {
+          "description": "The name of the sandbox defined by the developer when the sandbox was created. If you do not specify a name, the name will default to the `sandboxId`.",
+          "type": "string"
+        },
+        "clonable": {
+          "description": "Indicates whether the sandbox can be copied for another developer's use.",
+          "type": "boolean"
+        },
+        "cloneFrom": {
+          "type": "object",
+          "properties": {
+            "sandboxId": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "sandboxId"
+          ]
+        },
+        "properties": {
+          "description": "A list of the properties available for testing in the sandbox environment. A sandbox can contain more than one property.",
+          "type": "array",
+          "items": {
+            "properties": {
+              "requestHostnames": {
+                "description": "A set of hostnames for use in testing within a developer's sandbox.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "rulesPath": {
+                "type": "string"
+              },
+              "property": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "requestHostnames"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "rulesPath"
+                ]
+              },
+              {
+                "required": [
+                  "property"
+                ]
+              }
+            ]
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "clonable"
+      ],
+      "oneOf": [
+        {
+          "required": [
+            "properties"
+          ]
+        },
+        {
+          "required": [
+            "cloneFrom"
+          ]
+        }
+      ]
+    },
+    "clientConfig": {
+      "$ref": "/clientConfig"
+    }
+  },
+  "required": [
+    "sandbox"
+  ]
+}

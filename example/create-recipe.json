@@ -1,0 +1,42 @@
+{
+  "sandbox": {
+    "clonable": true,
+    "properties": [
+      {
+        "property": "447903:2",
+        "requestHostnames": [
+          "localhost"
+        ]
+      },
+      {
+        "rulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "localhost1"
+        ]
+      },
+      {
+        "rulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "localhost2"
+        ]
+      }
+    ]
+  },
+  "clientConfig" : {
+    "connectorServerInfo": {
+      "secure": false,
+      "port": 9550,
+      "host": "127.0.0.1"
+    },
+    "originMappings": [
+      {
+        "from": "origin-www.example.com",
+        "to": {
+          "secure": false,
+          "port": 8080,
+          "host": "localhost"
+        }
+      }
+    ]
+  }
+}
