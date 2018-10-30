@@ -532,11 +532,13 @@ async function createFromPropertiesRecipe(recipe) {
   const properties = sandboxRecipe.properties;
 
   const firstProp = properties[0];
-  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe), `creating sandbox & property 1 from recipe`);
+  console.log(`creating sandbox & property 1 from recipe`);
+  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe));
 
   for (var i = 1; i < properties.length; i++) {
     try {
-      await cliUtils.spinner(createRecipeProperty(properties[i], r.sandboxId), `creating property ${i + 1} from recipe`);
+      console.log(`creating property ${i + 1} from recipe`);
+      await cliUtils.spinner(createRecipeProperty(properties[i], r.sandboxId));
     } catch (e) {
       console.error(e);
     }
@@ -558,6 +560,7 @@ function createFromCloneRecipe(recipe) {
 }
 
 function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
+  console.log('validating recipe file');
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist.`);
   }
@@ -600,17 +603,19 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
   if (!sandboxRecipe.properties) {
     logAndExit('Missing properties unable to perform operation');
   }
-
+  console.log(`loading information for sandbox_id: ${sandboxId}`);
   const sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
   sandbox.isClonable = recipe.clonable;
   sandbox.name = recipe.name;
 
+  console.log(`updating sandbox information for sandbox_id: ${sandboxId}`);
   await sandboxSvc.updateSandbox(sandbox);
 
   var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
   const first = pIds[0];
   for (var i = 1; i < pIds.length; i++) {
     const propertyId = pIds[i];
+    console.log(`deleting sandbox_property_id: ${propertyId}`);
     await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, propertyId));
   }
 
@@ -619,13 +624,16 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
     requestHostnames: [uuidv1()]
   };
 
+  console.log(`updating sandbox_property_id: ${first}`);
   await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, propertyObj));
 
   for (var i = 0; i < sandboxRecipe.properties.length; i++) {
     const rp = sandboxRecipe.properties[i];
-    await cliUtils.spinner(createRecipeProperty(rp, sandboxId), `re-building property: ${i+1}`);
+    console.log(`re-building property: ${i+1}`);
+    await cliUtils.spinner(createRecipeProperty(rp, sandboxId));
   }
 
+  console.log(`deleting sandbox_property_id: ${first}`);
   await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, first));
 }
 
