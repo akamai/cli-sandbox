@@ -1,7 +1,9 @@
 var EdgeGrid = require('edgegrid');
 import * as os from 'os';
+
 var findJavaHome = require('find-java-home');
 var path = require('path');
+import * as edgeRcParser from './edgerc-parser';
 
 const _edge = null;
 const edgeRcParams = {
@@ -10,11 +12,21 @@ const edgeRcParams = {
   debug: false
 };
 
+function getEdgeGridSection(section) {
+  var sections = edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
+  return sections.find(s => s.sectionName === section);
+}
+
+function getAllEdgeGridSections() {
+  return edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
+}
+
 export function getEdgeGrid() {
   if (_edge != null) {
     return _edge;
   }
-  return new EdgeGrid(edgeRcParams);
+  var s = getEdgeGridSection(edgeRcParams.section);
+  return new EdgeGrid(s.clientToken, s.clientSecret, s.accessToken, s.host, edgeRcParams.debug);
 }
 
 export function setDebugMode(debug: boolean) {
