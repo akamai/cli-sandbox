@@ -518,6 +518,11 @@ async function createFromProperty(propertySpecifier: string, hostnames: Array<st
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
 }
 
+async function createFromHostname(hostname: string, hostnames: Array<string>, isClonable: boolean, name: string) {
+  const msg = `Creating from: ${hostname}`;
+  return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, { hostname }), msg);
+}
+
 async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
   var rulesList = await getRulesForSandboxId(sandboxId);
   const origins = new Set();
@@ -690,11 +695,25 @@ function createRecipeSandboxAndProperty(rp, recipe) {
   }
 }
 
+function oneOf(...args: any[]) {
+  var r = false;
+  for (var i = 0; i < args.length; i++) {
+    if (args[i]) {
+      if (r) {
+        return false;
+      }
+      r = true;
+    }
+  }
+  return r;
+}
+
 program
   .command('create')
   .description('create a new sandbox')
   .option('-r, --rules <file>', 'papi json file')
   .option('-p, --property <property_id | property_name : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-o, --hostname <hostname>', 'the hostname of your akamai property (e.g. www.example.com)')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
@@ -717,22 +736,23 @@ program
       }
       const hostnames = parseHostnameCsv(hostnamesCsv);
       const propertySpecifier = options.property;
+      const hostnameSpecifier = options.hostname;
 
       //validation
       if (!name) {
         logAndExit(`You must provide a name for your sandbox`);
       }
-      if (propertySpecifier && papiFilePath) {
-        logAndExit(`Both --property and --rules were specified. Pick only one of those arguments`)
-      } else if (!propertySpecifier && !papiFilePath) {
-        logAndExit(`Unable to build sandbox. Must specify either --property or --rules`);
+      if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
+        logAndExit(`Exactly one of the following must be specified: --property, --rules, --hostname. Please pick only one of those arguments.`)
       }
 
       var r = null;
       if (papiFilePath) {
         r = await createFromRules(papiFilePath, hostnames, isClonable, name);
-      } else {
+      } else if (propertySpecifier) {
         r = await createFromProperty(propertySpecifier, hostnames, isClonable, name);
+      } else if (hostnameSpecifier) {
+        r = await createFromHostname(hostnameSpecifier, hostnames, isClonable, name);
       }
 
       await registerSandbox(r.sandboxId, r.jwtToken, name);
