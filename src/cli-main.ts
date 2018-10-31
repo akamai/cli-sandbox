@@ -569,6 +569,9 @@ function createFromCloneRecipe(recipe) {
 }
 
 function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
+  if (typeof name !== 'string') {
+    name = null;
+  }
   console.log('validating recipe file');
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist.`);
@@ -580,7 +583,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   }
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
-  sandboxRecipe.name = name;
+  sandboxRecipe.name = name || sandboxRecipe.name;
   if (sandboxRecipe.properties) {
     sandboxRecipe.properties.forEach(p => {
       if (p.rulesPath) {
