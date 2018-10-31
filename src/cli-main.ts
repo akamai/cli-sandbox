@@ -496,7 +496,7 @@ function parsePropertySpecifier(propertySpecifier) {
   if (validator.isInt(propertySpec)) {
     key = 'propertyId';
   } else {
-    key = 'hostname';
+    key = 'propertyName';
   }
 
   propertySpecObj[key] = propertySpec;
@@ -694,7 +694,7 @@ program
   .command('create')
   .description('create a new sandbox')
   .option('-r, --rules <file>', 'papi json file')
-  .option('-p, --property <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-p, --property <property_id | property_name : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
