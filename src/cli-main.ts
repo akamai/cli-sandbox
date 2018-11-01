@@ -512,6 +512,11 @@ async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Ar
   return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, propertySpecObj), msg);
 }
 
+async function addPropertyToSandboxFromHostname(sandboxId: string, hostnames: Array<string>, hostname: string) {
+  const msg = `adding property based on: ${hostname}`;
+  return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, { hostname }), msg);
+}
+
 async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
   const propertySpecObj = parsePropertySpecifier(propertySpecifier);
   const msg = `Creating from: ${JSON.stringify(propertySpecObj)}`;
@@ -597,8 +602,8 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     });
     var idx = 0;
     sandboxRecipe.properties.forEach(p => {
-      if (!p.rulesPath && !p.property) {
-        logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
+      if (!oneOf(p.rulesPath, p.property, p.hostname)) {
+        logAndExit(`Error with property ${idx} couldn't locate rulesPath, property, or hostname for sandbox property.`);
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
@@ -680,6 +685,8 @@ function createRecipeProperty(rp, sandboxId) {
     return addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.property);
   } else if (rp.rulesPath) {
     return addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames);
+  } else if (rp.hostname) {
+    return addPropertyToSandboxFromHostname(sandboxId, rp.requestHostnames, rp.hostname);
   } else {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
@@ -688,6 +695,8 @@ function createRecipeProperty(rp, sandboxId) {
 function createRecipeSandboxAndProperty(rp, recipe) {
   if (rp.property) {
     return createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name);
+  } else if (rp.hostname) {
+    return createFromHostname(rp.hostname, rp.requestHostnames, recipe.clonable, recipe.name);
   } else if (rp.rulesPath) {
     return createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name);
   } else {

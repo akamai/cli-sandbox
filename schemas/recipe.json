@@ -38,6 +38,9 @@
                   "type": "string"
                 }
               },
+              "hostname": {
+                "type": "string"
+              },
               "rulesPath": {
                 "type": "string"
               },
@@ -57,6 +60,11 @@
               {
                 "required": [
                   "property"
+                ]
+              },
+              {
+                "required": [
+                  "hostname"
                 ]
               }
             ]

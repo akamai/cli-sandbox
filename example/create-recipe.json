@@ -5,19 +5,25 @@
       {
         "property": "447903:2",
         "requestHostnames": [
-          "localhost"
-        ]
-      },
-      {
-        "rulesPath": "./papi-rules-1.json",
-        "requestHostnames": [
           "localhost1"
         ]
       },
       {
-        "rulesPath": "./papi-rules-1.json",
+        "hostname": "www.example.com",
         "requestHostnames": [
           "localhost2"
+        ]
+      },
+      {
+        "rulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "localhost3"
+        ]
+      },
+      {
+        "rulesPath": "./papi-rules-1.json",
+        "requestHostnames": [
+          "localhost4"
         ]
       }
     ]
