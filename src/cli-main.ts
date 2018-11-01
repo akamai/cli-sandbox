@@ -603,7 +603,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     var idx = 0;
     sandboxRecipe.properties.forEach(p => {
       if (!oneOf(p.rulesPath, p.property, p.hostname)) {
-        logAndExit(`Error with property ${idx} couldn't locate rulesPath, property, or hostname for sandbox property.`);
+        logAndExit(`Error with property ${idx}. Please specify only one of: rulesPath, property, or hostname`);
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
