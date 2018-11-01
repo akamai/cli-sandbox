@@ -36,7 +36,11 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "minItems": 1
+              },
+              "hostname": {
+                "type": "string"
               },
               "rulesPath": {
                 "type": "string"
@@ -45,9 +49,6 @@
                 "type": "string"
               }
             },
-            "required": [
-              "requestHostnames"
-            ],
             "oneOf": [
               {
                 "required": [
@@ -57,6 +58,11 @@
               {
                 "required": [
                   "property"
+                ]
+              },
+              {
+                "required": [
+                  "hostname"
                 ]
               }
             ]

@@ -496,7 +496,7 @@ function parsePropertySpecifier(propertySpecifier) {
   if (validator.isInt(propertySpec)) {
     key = 'propertyId';
   } else {
-    key = 'hostname';
+    key = 'propertyName';
   }
 
   propertySpecObj[key] = propertySpec;
@@ -512,10 +512,20 @@ async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Ar
   return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, propertySpecObj), msg);
 }
 
+async function addPropertyToSandboxFromHostname(sandboxId: string, hostnames: Array<string>, hostname: string) {
+  const msg = `adding property based on: ${hostname}`;
+  return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, {hostname}), msg);
+}
+
 async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
   const propertySpecObj = parsePropertySpecifier(propertySpecifier);
   const msg = `Creating from: ${JSON.stringify(propertySpecObj)}`;
   return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, propertySpecObj), msg);
+}
+
+async function createFromHostname(hostname: string, hostnames: Array<string>, isClonable: boolean, name: string) {
+  const msg = `Creating from: ${hostname}`;
+  return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, {hostname}), msg);
 }
 
 async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
@@ -592,11 +602,14 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     });
     var idx = 0;
     sandboxRecipe.properties.forEach(p => {
-      if (!p.rulesPath && !p.property) {
-        logAndExit(`Error with property ${idx} couldn't locate rulesPath or property for sandbox property.`);
+      if (!oneOf(p.rulesPath, p.property, p.hostname)) {
+        logAndExit(`Error with property ${idx}. Please specify only one of: rulesPath, property, or hostname`);
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
+      }
+      if (p.rulesPath && (!p.requestHostnames || p.requestHostnames.length === 0)) {
+        logAndExit(`Error with property ${idx}. Must specify requestHostnames array when using rulesPath`);
       }
       idx++;
     });
@@ -675,6 +688,8 @@ function createRecipeProperty(rp, sandboxId) {
     return addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.property);
   } else if (rp.rulesPath) {
     return addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames);
+  } else if (rp.hostname) {
+    return addPropertyToSandboxFromHostname(sandboxId, rp.requestHostnames, rp.hostname);
   } else {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
@@ -683,6 +698,8 @@ function createRecipeProperty(rp, sandboxId) {
 function createRecipeSandboxAndProperty(rp, recipe) {
   if (rp.property) {
     return createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name);
+  } else if (rp.hostname) {
+    return createFromHostname(rp.hostname, rp.requestHostnames, recipe.clonable, recipe.name);
   } else if (rp.rulesPath) {
     return createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name);
   } else {
@@ -690,11 +707,25 @@ function createRecipeSandboxAndProperty(rp, recipe) {
   }
 }
 
+function oneOf(...args: any[]) {
+  var r = false;
+  for (var i = 0; i < args.length; i++) {
+    if (args[i]) {
+      if (r) {
+        return false;
+      }
+      r = true;
+    }
+  }
+  return r;
+}
+
 program
   .command('create')
   .description('create a new sandbox')
   .option('-r, --rules <file>', 'papi json file')
-  .option('-p, --property <property_id | hostname : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-p, --property <property_id | property_name : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-o, --hostname <hostname>', 'the hostname of your akamai property (e.g. www.example.com)')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
@@ -712,27 +743,30 @@ program
       const name = options.name;
       const hostnamesCsv = options.requesthostnames;
       const isClonable = parseToBoolean(options.clonable);
-      if (!hostnamesCsv) {
-        logAndExit('--requesthostnames must be specified');
-      }
-      const hostnames = parseHostnameCsv(hostnamesCsv);
+
       const propertySpecifier = options.property;
+      const hostnameSpecifier = options.hostname;
 
       //validation
       if (!name) {
         logAndExit(`You must provide a name for your sandbox`);
       }
-      if (propertySpecifier && papiFilePath) {
-        logAndExit(`Both --property and --rules were specified. Pick only one of those arguments`)
-      } else if (!propertySpecifier && !papiFilePath) {
-        logAndExit(`Unable to build sandbox. Must specify either --property or --rules`);
+      if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
+        logAndExit(`Exactly one of the following must be specified: --property, --rules, --hostname. Please pick only one of those arguments.`)
       }
+
+      if (!hostnamesCsv && papiFilePath) {
+        logAndExit('--requesthostnames must be specified when specifying --rules');
+      }
+      const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
 
       var r = null;
       if (papiFilePath) {
         r = await createFromRules(papiFilePath, hostnames, isClonable, name);
-      } else {
+      } else if (propertySpecifier) {
         r = await createFromProperty(propertySpecifier, hostnames, isClonable, name);
+      } else if (hostnameSpecifier) {
+        r = await createFromHostname(hostnameSpecifier, hostnames, isClonable, name);
       }
 
       await registerSandbox(r.sandboxId, r.jwtToken, name);
