@@ -36,7 +36,8 @@
                 "type": "array",
                 "items": {
                   "type": "string"
-                }
+                },
+                "minItems": 1
               },
               "hostname": {
                 "type": "string"
@@ -48,9 +49,6 @@
                 "type": "string"
               }
             },
-            "required": [
-              "requestHostnames"
-            ],
             "oneOf": [
               {
                 "required": [

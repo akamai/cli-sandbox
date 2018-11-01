@@ -62,7 +62,7 @@ export function deleteSandbox(sandboxId: string) {
   return sendEdgeRequest(`/devpops-api/v1/sandboxes/${sandboxId}`, 'DELETE', '', {});
 }
 
-export function cloneSandbox(sandboxId: string, name: string, clonable=false) {
+export function cloneSandbox(sandboxId: string, name: string, clonable = false) {
   const body = {
     name,
     isClonable: clonable
@@ -102,19 +102,23 @@ export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRu
 
 export function addPropertyFromProperty(sandboxId: string, requestHostnames, fromPropertyObj) {
   var bodyObj = {
-    requestHostnames: requestHostnames,
     createFromProperty: fromPropertyObj,
   };
+  if (requestHostnames) {
+    bodyObj['requestHostnames'] = requestHostnames;
+  }
   return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/properties`, bodyObj);
 }
 
 export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
   var bodyObj = {
     name: name,
-    requestHostnames: requestHostnames,
     createFromProperty: fromPropertyObj,
     isClonable: isClonable
   };
+  if (requestHostnames) {
+    bodyObj['requestHostnames'] = requestHostnames;
+  }
   return postJson('/devpops-api/v1/sandboxes', bodyObj);
 }
 

@@ -514,7 +514,7 @@ async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Ar
 
 async function addPropertyToSandboxFromHostname(sandboxId: string, hostnames: Array<string>, hostname: string) {
   const msg = `adding property based on: ${hostname}`;
-  return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, { hostname }), msg);
+  return await cliUtils.spinner(sandboxSvc.addPropertyFromProperty(sandboxId, hostnames, {hostname}), msg);
 }
 
 async function createFromProperty(propertySpecifier: string, hostnames: Array<string>, isClonable: boolean, name: string) {
@@ -525,7 +525,7 @@ async function createFromProperty(propertySpecifier: string, hostnames: Array<st
 
 async function createFromHostname(hostname: string, hostnames: Array<string>, isClonable: boolean, name: string) {
   const msg = `Creating from: ${hostname}`;
-  return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, { hostname }), msg);
+  return await cliUtils.spinner(sandboxSvc.createFromProperty(hostnames, name, isClonable, {hostname}), msg);
 }
 
 async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
@@ -607,6 +607,9 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
+      }
+      if (p.rulesPath && (!p.requestHostnames || p.requestHostnames.length === 0)) {
+        logAndExit(`Error with property ${idx}. Must specify requestHostnames array when using rulesPath`);
       }
       idx++;
     });
@@ -740,10 +743,7 @@ program
       const name = options.name;
       const hostnamesCsv = options.requesthostnames;
       const isClonable = parseToBoolean(options.clonable);
-      if (!hostnamesCsv) {
-        logAndExit('--requesthostnames must be specified');
-      }
-      const hostnames = parseHostnameCsv(hostnamesCsv);
+
       const propertySpecifier = options.property;
       const hostnameSpecifier = options.hostname;
 
@@ -754,6 +754,11 @@ program
       if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
         logAndExit(`Exactly one of the following must be specified: --property, --rules, --hostname. Please pick only one of those arguments.`)
       }
+
+      if (!hostnamesCsv && papiFilePath) {
+        logAndExit('--requesthostnames must be specified when specifying --rules');
+      }
+      const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
 
       var r = null;
       if (papiFilePath) {

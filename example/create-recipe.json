@@ -3,28 +3,7 @@
     "clonable": true,
     "properties": [
       {
-        "property": "447903:2",
-        "requestHostnames": [
-          "localhost1"
-        ]
-      },
-      {
-        "hostname": "www.example.com",
-        "requestHostnames": [
-          "localhost2"
-        ]
-      },
-      {
-        "rulesPath": "./papi-rules-1.json",
-        "requestHostnames": [
-          "localhost3"
-        ]
-      },
-      {
-        "rulesPath": "./papi-rules-1.json",
-        "requestHostnames": [
-          "localhost4"
-        ]
+        "property": "447903:2"
       }
     ]
   },
