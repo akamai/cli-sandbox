@@ -2,6 +2,7 @@
 import * as fs from 'fs';
 import * as path from "path";
 import * as os from "os";
+
 const uuidv1 = require('uuid/v1');
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
@@ -112,7 +113,15 @@ function showLocalSandboxes() {
       sandbox_id: sb.sandboxId
     }
   });
-  console.table(sandboxes);
+  showSandboxesTable(sandboxes);
+}
+
+function showSandboxesTable(sandboxes) {
+  if (sandboxes.length === 0) {
+    console.log('no sandboxes found');
+  } else {
+    console.table(sandboxes);
+  }
 }
 
 async function showRemoteSandboxes() {
@@ -128,7 +137,7 @@ async function showRemoteSandboxes() {
       status: sb.status
     }
   });
-  console.table(sandboxes);
+  showSandboxesTable(sandboxes);
 }
 
 program
@@ -560,6 +569,9 @@ function createFromCloneRecipe(recipe) {
 }
 
 function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
+  if (typeof name !== 'string') {
+    name = null;
+  }
   console.log('validating recipe file');
   if (!fs.existsSync(recipeFilePath)) {
     logAndExit(`File ${recipeFilePath} does not exist.`);
@@ -571,7 +583,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   }
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
-  sandboxRecipe.name = name;
+  sandboxRecipe.name = name || sandboxRecipe.name;
   if (sandboxRecipe.properties) {
     sandboxRecipe.properties.forEach(p => {
       if (p.rulesPath) {
@@ -629,7 +641,7 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
 
   for (var i = 0; i < sandboxRecipe.properties.length; i++) {
     const rp = sandboxRecipe.properties[i];
-    console.log(`re-building property: ${i+1}`);
+    console.log(`re-building property: ${i + 1}`);
     await cliUtils.spinner(createRecipeProperty(rp, sandboxId));
   }
 
