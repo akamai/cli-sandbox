@@ -81,7 +81,7 @@ function getClientTemplatePath() {
   return path.resolve(appRoot.path, 'src/template/client-config.json');
 }
 
-function buildClientConfig(origins: Array<string>) {
+function buildClientConfig(origins: Array<string>, passThrough: boolean) {
   var template: string = fs.readFileSync(getClientTemplatePath()).toString();
   var clientConfig = JSON.parse(template);
   if (!origins || origins.length == 0) {
@@ -93,14 +93,14 @@ function buildClientConfig(origins: Array<string>) {
    origins.forEach(o => {
      clientConfig.originMappings.push({
        from: o,
-       to: DEFAULT_ORIGIN_TARGET
+       to: passThrough ? "pass-through" : DEFAULT_ORIGIN_TARGET
      });
    });
   }
   return clientConfig;
 }
 
-function mergeOrigins(clientConfig, origins: Array<string>) {
+function mergeOrigins(clientConfig, origins: Array<string>, passThrough: boolean) {
   if (origins == null || origins.length == 0) {
     return;
   }
@@ -111,23 +111,23 @@ function mergeOrigins(clientConfig, origins: Array<string>) {
     if (!inCc.has(o)) {
       clientConfig.originMappings.push({
         from: o,
-        to: DEFAULT_ORIGIN_TARGET
+        to: passThrough ? "pass-through" : DEFAULT_ORIGIN_TARGET
       });
     }
   })
 }
 
-export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>, clientConfig = null) {
+export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>, clientConfig = null, passThrough: boolean) {
   const folderName = name;
   const sandboxDir = path.join(SANDBOXES_DIR, folderName);
   fs.mkdirSync(sandboxDir);
 
   let cc: any = null;
   if (!clientConfig) {
-    cc = buildClientConfig(origins);
+    cc = buildClientConfig(origins, passThrough);
   } else {
     cc = clientConfig;
-    mergeOrigins(clientConfig, origins);
+    mergeOrigins(clientConfig, origins, passThrough);
   }
   cc.jwt = jwt;
 
