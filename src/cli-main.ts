@@ -779,9 +779,16 @@ program
 async function registerSandbox(sandboxId: string, jwt: string, name: string, clientConfig = null) {
   console.log('building origin list');
   var origins: Array<string> = await getOriginListForSandboxId(sandboxId);
+  var passThrough = false;
+  if (origins.length > 0) {
+    console.log(`Detected the following origins: ${origins.join(', ')}`);
+    if (await cliUtils.confirm('Would you like the Sandbox Client to proxy these to the destination defined in the Akamai config?')) {
+      passThrough = true;
+    }
+  }
 
   console.log('registering sandbox in local datastore');
-  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig);
+  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
 
   console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
 }
