@@ -24,8 +24,8 @@ Options:
 | - | - |
 | -V, --version | Display the version number for the Sandbox CLI program. |
 | --debug | Show debug information. |
-| --edgerc `<path>` | Use credentials in `edgerc` file for command. |
-| --section `<name>` | Use this section in `edgerc` file. |
+| --edgerc `<path>` | Use credentials in `edgerc` file for command. (Default file location is _~/.edgerc_) |
+| --section `<name>` | Use this section in `edgerc` file. (Default section is _[default]_|
 | -h, --help | Display usage information for the Sandbox CLI. |
  
 Commands:
