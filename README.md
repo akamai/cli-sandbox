@@ -55,6 +55,9 @@ OR
 ### Step 5: Validating that your responses are coming from a Sandbox 
 All Sandbox traffic will be tagged with a response header "X-Akamai-Sandbox: true", use Chrome Dev tools to validate the presence of the header.
 
+### You are all set, Happy Debugging!
+If you face any issues please feel free to raise them as a github issue. Better yet, if you wish to place a pull request with the fix or suggestion feel free to do so. 
+
 ## Overview of Commands
 The Sandbox CLI is a tool that enables you to manage Akamai Sandboxes by calling the [Akamai Sandbox API](https://developer.akamai.com/api/core_features/devpops/v1.html).
 
