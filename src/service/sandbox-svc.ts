@@ -1,13 +1,22 @@
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 
+var accountKey: string = null;
+
+export function setAccountKey(account: string) {
+  accountKey = account;
+}
 
 function isOkStatus(code) {
   return code >= 200 && code < 300;
 }
 
-function sendEdgeRequest(path: string, method: string, body, headers) {
+function sendEdgeRequest(pth: string, method: string, body, headers) {
   const edge = envUtils.getEdgeGrid();
+  var path = pth;
+  if (accountKey) {
+    path += `?accountSwitchKey=${accountKey}`;
+  }
   return new Promise(
     (resolve, reject) => {
       edge.auth({

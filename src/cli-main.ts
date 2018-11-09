@@ -63,11 +63,15 @@ program
   .option('--debug', 'show debug information')
   .option('--edgerc <path>', 'use edgerc file for command')
   .option('--section <name>', 'use this section in edgerc file')
+  .option('--accountkey <account-id>', 'internal parameter')
   .on("option:edgerc", function (edgeRcFilePath) {
     envUtils.setEdgeRcFilePath(edgeRcFilePath);
   })
   .on("option:section", function (section) {
     envUtils.setEdgeRcSection(section);
+  })
+  .on("option:accountkey", function (key) {
+    sandboxSvc.setAccountKey(key);
   })
   .on("option:debug", function () {
     envUtils.setDebugMode(true);
