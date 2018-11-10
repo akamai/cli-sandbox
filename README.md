@@ -27,9 +27,20 @@ There are multiple ways to create a sandbox
 **Option B**: To create a sandbox based on a property manager file name present on Akamai
 
 `akamai sandbox create --property example_prod_pm --name sandbox_for_example.com`
->**NOTE**: The above command will create a sandbox based on the latest active version of your property manager config on production. If you wish to specify a particular version then use the command below 
-> `akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`
-> While creating the sandbox based on a property the CLI will automatically scan the property manager file and detect all the origins defined in the file and asks you if you wish to have the sandbox request go directly to these origins. If you choose "yes" then the sandbox client will pass all the requests directly to the origin as defined in your property manager config.
+>**NOTE**: The above command will create a sandbox based on the latest active version of your property manager config on production. If you wish to specify a particular version then use the command below   
+> `akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`   
+
+While creating the sandbox based on a property the CLI will automatically scan the property manager file and detect all the origins defined in the file and asks you if you wish to have the sandbox request go directly to these origins. If you choose "yes" then the sandbox client will pass all the requests directly to the origin as defined in your property manager config.  Below is an example of how the auto scan works
+```
+my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com
+building origin list 
+Detected the following origins: origin-www.example.com  
+? Would you like the Sandbox Client to proxy these to the destination defined in the Akamai config? **Yes**
+registering sandbox in local datastore
+sandbox_id: 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52 sandbox_for_example.com is now active  
+Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json please edit this file  
+my_laptop:~ username$
+``` 
 
 ### Step 3: Connecting To The Sandbox
 The last stage of the setup is to connect securely to the sandbox you just created. You can do so by calling the "start" parameter
@@ -39,6 +50,7 @@ The last stage of the setup is to connect securely to the sandbox you just creat
 >**NOTE**:Below is the message you will get once you are successfully connected to the sandbox   
 >`INFO  c.a.devpops.connector.ConnectorMain - Successfully launched Akamai Sandbox Connector`   
 >`INFO  c.a.devpops.connector.ConnectorMain - Connector running on port: 9550`
+
 
 ### Step 4: Testing The Sandbox
 You have two options to test the Sandbox.
@@ -57,6 +69,8 @@ All Sandbox traffic will be tagged with a response header "X-Akamai-Sandbox: tru
 
 ### You are all set, Happy Debugging!
 If you face any issues please feel free to raise them as a github issue. Better yet, if you wish to place a pull request with the fix or suggestion feel free to do so. 
+
+___
 
 ## Overview of Commands
 The Sandbox CLI is a tool that enables you to manage Akamai Sandboxes by calling the [Akamai Sandbox API](https://developer.akamai.com/api/core_features/devpops/v1.html).
