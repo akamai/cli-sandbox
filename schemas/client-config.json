@@ -3,7 +3,7 @@
   "type": "object",
   "description": "object that specifies the information about how the sandbox client should be configured",
   "properties": {
-    "connectorServerInfo": {
+    "sandboxServerInfo": {
       "description": "Information about how traffic should be served by the sandbox connector",
       "type": "object",
       "properties": {
@@ -71,7 +71,7 @@
     }
   },
   "required": [
-    "connectorServerInfo",
+    "sandboxServerInfo",
     "originMappings"
   ]
 }

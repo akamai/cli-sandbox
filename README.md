@@ -169,7 +169,7 @@ You can use this example "recipe" to quickly customize the sandbox to your devel
         ]
     },
     "clientConfig":{  
-        "connectorServerInfo":{  
+        "sandboxServerInfo":{  
             "secure":false,
             "port":9550,
             "host":"127.0.0.1"

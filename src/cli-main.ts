@@ -800,7 +800,7 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
 async function downloadClientIfNecessary() {
   try {
     if (!sandboxClientManager.isAlreadyInstalled()) {
-      console.log("no connector installed. Installing sandbox client...");
+      console.log("no sandbox client installed. Installing sandbox client...");
       await sandboxClientManager.downloadClient();
     }
   } catch (e) {
