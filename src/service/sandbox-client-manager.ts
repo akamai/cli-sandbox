@@ -11,12 +11,12 @@ const shell = require('shelljs');
 const fsExtra = require('fs-extra');
 const download = require('download');
 
-const CONNECTOR_VERSION = '1.1.2';
-const DOWNLOAD_PATH: string = `https://github.com/akamai/devpops-client/releases/download/${CONNECTOR_VERSION}/`;
-const DOWNLOAD_FILE: string = `sandbox-connector-${CONNECTOR_VERSION}-RELEASE-default.zip`;
+const CONNECTOR_VERSION = '1.1.4';
+const DOWNLOAD_PATH: string = `https://github.com/akamai/sandbox-client/releases/download/${CONNECTOR_VERSION}/`;
+const DOWNLOAD_FILE: string = `sandbox-client-${CONNECTOR_VERSION}-RELEASE-default.zip`;
 const DOWNLOAD_URL = DOWNLOAD_PATH + DOWNLOAD_FILE;
-const CONNECTOR_FOLDER_NAME = `sandbox-connector-${CONNECTOR_VERSION}-RELEASE`;
-const JAR_FILE_NAME = `sandbox-connector-${CONNECTOR_VERSION}-RELEASE.jar`;
+const CONNECTOR_FOLDER_NAME = `sandbox-client-${CONNECTOR_VERSION}-RELEASE`;
+const JAR_FILE_NAME = `sandbox-client-${CONNECTOR_VERSION}-RELEASE.jar`;
 
 const CLI_CACHE_PATH: string = process.env.AKAMAI_CLI_CACHE_PATH;
 const SANDBOX_CLI_HOME = path.join(CLI_CACHE_PATH, '/sandbox-cli/');
