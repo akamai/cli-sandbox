@@ -11,7 +11,7 @@ const shell = require('shelljs');
 const fsExtra = require('fs-extra');
 const download = require('download');
 
-const CONNECTOR_VERSION = '1.1.4';
+const CONNECTOR_VERSION = '1.1.5';
 const DOWNLOAD_PATH: string = `https://github.com/akamai/sandbox-client/releases/download/${CONNECTOR_VERSION}/`;
 const DOWNLOAD_FILE: string = `sandbox-client-${CONNECTOR_VERSION}-RELEASE-default.zip`;
 const DOWNLOAD_URL = DOWNLOAD_PATH + DOWNLOAD_FILE;
