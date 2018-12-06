@@ -27,7 +27,9 @@ function sendEdgeRequest(pth: string, method: string, body, headers) {
       });
 
       edge.send(function (error, response, body) {
-        if (isOkStatus(response.statusCode)) {
+        if (error) {
+          reject(error);
+        } else if (isOkStatus(response.statusCode)) {
           if (!body) {
             resolve();
           } else {
