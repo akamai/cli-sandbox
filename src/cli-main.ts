@@ -182,6 +182,7 @@ function populateOrigins(papiNode, originsList) {
   }
   papiNode.behaviors
     .filter(b => b.name === 'origin')
+    .filter(b => b.options && b.options.hostname)
     .forEach(b => {
       originsList.push(b.options.hostname);
     });
