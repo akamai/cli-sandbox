@@ -413,7 +413,7 @@ program
       if (options.clonable) {
         sandbox.isClonable = clonable;
       }
-      if (options.name) {
+      if (isNonEmptyString(options.name)) {
         sandbox.name = options.name;
       }
 
@@ -453,7 +453,7 @@ program
   .action(async function (arg, options) {
     try {
       const sandboxId = getSandboxIdFromIdentifier(arg);
-      if (!options.name) {
+      if (!isNonEmptyString(options.name)) {
         logAndExit('parameter --name is required');
       }
       const name = options.name;
@@ -725,6 +725,13 @@ function oneOf(...args: any[]) {
   return r;
 }
 
+function isNonEmptyString(obj) {
+  return obj !== null
+    && obj !== undefined
+    && (typeof obj === 'string')
+    && obj.trim().length > 0;
+}
+
 program
   .command('create')
   .description('create a new sandbox')
@@ -753,7 +760,7 @@ program
       const hostnameSpecifier = options.hostname;
 
       //validation
-      if (!name) {
+      if (!isNonEmptyString(name)) {
         logAndExit(`You must provide a name for your sandbox`);
       }
       if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
