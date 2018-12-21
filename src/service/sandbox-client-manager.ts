@@ -205,7 +205,7 @@ export function hasCurrent() {
 
 export async function executeSandboxClient() {
   var args = [
-    await envUtils.getJavaExecutablePath(),
+    `"${await envUtils.getJavaExecutablePath()}"`,
     `-Dlogging.path="${getLogPath()}"`,
     `-Dlogging.config="${LOG_CONFIG_FILE}"`,
     `-jar "${JAR_FILE_PATH}"`,
