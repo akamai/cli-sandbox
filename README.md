@@ -1,34 +1,39 @@
-# Akamai Sandbox CLI
-The Sandbox CLI is designed to expedite the process of creating an isolated development environment for testing site changes or Akamai property configurations.
+# Sandbox CLI
+The Sandbox command line interface (CLI) expedites the process of creating an isolated development environment for testing changes to your website or property.
 
 ## Technical Setup Requirements
-In order to use this tool, you must have:
-* [Akamai CLI](https://github.com/akamai/cli) installed. If you have a Mac with brew installed, enter `brew install akamai`.
-* An API client with both Property Manager API (PAPI) and DevPoPs API with READ-WRITE access. Follow the steps in [Get Started with APIs](https://developer.akamai.com/api/getting-started) to learn how to configure credentials to access the API.
+To use this tool you need:
+* [Akamai CLI](https://github.com/akamai/cli) installed. If you have a Mac with brew installed, run this command: `brew install akamai`.
+* An API client that contains both the Sandbox and Property Manager APIs with read-write access. Follow the steps in [Get Started with APIs](https://developer.akamai.com/api/getting-started) to learn how to configure credentials to access the API.
 * Node version 8+
 * Java version 8+
 
 ## Quick Start
 
-### Step 1: Install the Sandbox CLI 
+### Step 1: Install Sandbox CLI 
 
 `akamai install sandbox`
 
-### Step 2: Create a Sandbox 
+### Step 2: Create a sandbox 
 
-There are multiple ways to create a sandbox. Use these code samples in this Quick Start section for a few common options.
+There are a variety of ways to create a sandbox. These code samples show a few common options.
 
-**Option A**: Create a sandbox based on a hostname present in your Akamai Property Manager configuration.
+**Option A**: Create a sandbox based on a hostname in your Akamai property.
 
 `akamai sandbox create --hostname www.example.com --name sandbox_for_example.com`
 
-**Option B**: Create a sandbox based on a Property Manager file name present on Akamai.
+**Option B**: Create a sandbox based on a Property Manager configuration file.
 
 `akamai sandbox create --property example_prod_pm --name sandbox_for_example.com`
->**NOTE**: The above command will create a sandbox based on the latest active version of your Property Manager configuration on production. Use the command below to specify a particular version.
-> `akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`   
 
-While creating the sandbox based on a property, the CLI will automatically scan the Property Manager file and detect all the origins defined in the file and ask you if you wish to have the sandbox request go directly to these origins. If you choose "yes" then the sandbox client will pass all the requests directly to the origin as defined in your Property Manager configuration.  Below is an example of how the auto scan works:
+>**NOTE**: This command creates a sandbox based on the version of your Property Manager configuration that is currently active on the production network.
+
+**Option C**: Create a sandbox based on a specific version of a property configuration.
+
+`akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`   
+
+When creating the sandbox based on a property, the CLI automatically scans the Property Manager configuration, detects all the origins defined in the file, and asks you to confirm if you want sandbox requests to go directly to these origins. This is an example of how the auto scan works:
+
 ```
 my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com
 building origin list 
@@ -40,40 +45,35 @@ Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated 
 my_laptop:~ username$
 ``` 
 
-### Step 3: Connect to the Sandbox
-The last stage of the setup is to connect securely to the sandbox you just created. To do this, run the "start" command.
+### Step 3: Connect to your sandbox
+Run this command to connect securely to the sandbox you just created:
 
 `akamai sandbox start`
 
-Once you are successfully connected to the sandbox, you will see this message:
+You will see this message confirming that you are connected to the sandbox:
 
-`INFO  c.a.devpops.connector.ConnectorMain - Successfully launched Akamai Sandbox Connector`   
-`INFO  c.a.devpops.connector.ConnectorMain - Connector running on port: 9550`
+`INFO  c.a.devpops.connector.ConnectorMain - Successfully launched Akamai Sandbox Client`
 
 ### Step 4: Test the Sandbox
 You have two options to test the Sandbox.
 
-**Option A**: Spoof your hostname to 127.0.0.1
+* Point the hostname associated with the Property Manager configuration to `127.0.0.1` in your `/etc/hosts` file, then access the site from your browser `http://<your-hostname>:9550`.
 
-Point the hostname associated with the Property Manager configuration to `127.0.0.1` in your `/etc/hosts` file, then access the site from your browser `http://<your-hostname>:9550`.
+    OR
 
-OR
-
-**Option B**: Use curl
-
-`curl --header 'Host: www.example.com' http://127.0.0.1:9550/`
+* Run this curl command: `curl --header 'Host: www.example.com' http://127.0.0.1:9550/`
 
 ### Step 5: Validate that your responses are coming from a Sandbox 
-All Sandbox traffic will be tagged with a response header `X-Akamai-Sandbox: true`. Use Chrome developer tools to validate the presence of the header.
+All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. Use the [Developer Toolkit](https://developer.akamai.com/tools/akamai-developer-toolkit-chrome) to validate the presence of the header.
 
 ### Debug and report issues
-You are all set, happy debugging! If you experience any issues with Akamai Sandbox, please raise them as a github issue. Better yet, feel free to place a pull request with the fix or suggestion.
+You are all set, happy debugging! If you experience any issues with Sandbox, raise them as a [github issue](https://github.com/akamai/cli-sandbox/issues). Feel free to create a pull request with the fix or suggestion.
 ___
 
 ## Overview of Commands
-The Sandbox CLI is a tool that enables you to manage Akamai Sandboxes by calling the [Akamai Sandbox API](https://developer.akamai.com/api/core_features/devpops/v1.html).
+Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://developer.akamai.com/api/core_features/sandbox/v1.html).
 
-> **NOTE**: `sandbox-identifier` is a string that can uniquely identify a sandbox (matches on `name` or `sandboxID`). If the sandbox identifier is not specified, it will use the currently active sandbox.
+> **NOTE**: `sandbox-identifier` is a string that uniquely identifies a sandbox (matches on `name` or `sandboxID`). If you do not specify a `sandbox-identifier`, the CLI uses the currently active sandbox.
 
 optional args `[]`
 required args `<>`
@@ -88,7 +88,7 @@ Options:
 | --debug | Show debug information. |
 | --edgerc `<path>` | Use credentials in `edgerc` file for command. (Default file location is _~/.edgerc_) |
 | --section `<name>` | Use this section in `edgerc` file. (Default section is _[default]_|
-| -h, --help | Display usage information for the Sandbox CLI. |
+| -h, --help | Display usage information for Sandbox CLI. |
  
 Commands:
 
@@ -190,3 +190,6 @@ You can use this example "recipe" to quickly customize the sandbox to your devel
 1. Edit the information according to your development environment and property specifications.
 1. Save the file with a `.json` extension (e.g., `example_recipe.json`)
 1. Run this command on your file ` ./akamai-sandbox create --recipe=./example/example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
+
+## Resources
+For more information on Sandbox, refer to the [User Guide](https://learn.akamai.com/en-us/webhelp/sandbox/sandbox-user-guide/).
