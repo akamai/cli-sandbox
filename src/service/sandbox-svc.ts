@@ -3,6 +3,8 @@ import * as cliUtils from '../utils/cli-utils';
 
 var accountKey: string = null;
 
+const SANDBOX_API_BASE = '/sandbox-api/v1';
+
 export function setAccountKey(account: string) {
   accountKey = account;
 }
@@ -70,7 +72,7 @@ function del(path: string) {
 }
 
 export function deleteSandbox(sandboxId: string) {
-  return sendEdgeRequest(`/devpops-api/v1/sandboxes/${sandboxId}`, 'DELETE', '', {});
+  return sendEdgeRequest(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`, 'DELETE', '', {});
 }
 
 export function cloneSandbox(sandboxId: string, name: string, clonable = false) {
@@ -78,19 +80,19 @@ export function cloneSandbox(sandboxId: string, name: string, clonable = false) 
     name,
     isClonable: clonable
   };
-  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/clone`, body);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/clone`, body);
 }
 
 export function getAllSandboxes() {
-  return getJson(`/devpops-api/v1/sandboxes`);
+  return getJson(`${SANDBOX_API_BASE}/sandboxes`);
 }
 
 export function getSandbox(sandboxId: string) {
-  return getJson(`/devpops-api/v1/sandboxes/${sandboxId}`);
+  return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`);
 }
 
 export function updateSandbox(sandbox) {
-  return putJson(`/devpops-api/v1/sandboxes/${sandbox.sandboxId}`, sandbox);
+  return putJson(`${SANDBOX_API_BASE}/sandboxes/${sandbox.sandboxId}`, sandbox);
 }
 
 export function createFromRules(papiRules, requestHostnames, name, isClonable) {
@@ -100,7 +102,7 @@ export function createFromRules(papiRules, requestHostnames, name, isClonable) {
     createFromRules: papiRules,
     isClonable: isClonable
   };
-  return postJson('/devpops-api/v1/sandboxes', bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj);
 }
 
 export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRules) {
@@ -108,7 +110,7 @@ export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRu
     requestHostnames: requestHostnames,
     createFromRules: papiRules
   };
-  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/properties`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj);
 }
 
 export function addPropertyFromProperty(sandboxId: string, requestHostnames, fromPropertyObj) {
@@ -118,7 +120,7 @@ export function addPropertyFromProperty(sandboxId: string, requestHostnames, fro
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
   }
-  return postJson(`/devpops-api/v1/sandboxes/${sandboxId}/properties`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj);
 }
 
 export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
@@ -130,16 +132,16 @@ export function createFromProperty(requestHostnames, name, isClonable, fromPrope
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
   }
-  return postJson('/devpops-api/v1/sandboxes', bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj);
 }
 
 export function getRules(sandboxId: string, sandboxPropertyId: string) {
-  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
   return getJson(endpoint);
 }
 
 export function updateRules(sandboxId: string, sandboxPropertyId: string, rules) {
-  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
   var body = {
     rules: rules.rules ? rules.rules : rules
   };
@@ -147,16 +149,16 @@ export function updateRules(sandboxId: string, sandboxPropertyId: string, rules)
 }
 
 export function getProperty(sandboxId: string, sandboxPropertyId: string) {
-  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
   return getJson(endpoint);
 }
 
 export function updateProperty(sandboxId, propertyObj) {
-  var endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${propertyObj.sandboxPropertyId}`;
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${propertyObj.sandboxPropertyId}`;
   return putJson(endpoint, propertyObj);
 }
 
 export function deleteProperty(sandboxId, sandboxPropertyId) {
-  const endpoint = `/devpops-api/v1/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
+  const endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
   return del(endpoint);
 }
