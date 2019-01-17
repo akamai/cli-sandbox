@@ -19,7 +19,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers) {
   if (accountKey) {
     path += `?accountSwitchKey=${accountKey}`;
   }
-  return new Promise(
+  return new Promise<any>(
     (resolve, reject) => {
       edge.auth({
         path,
@@ -32,12 +32,11 @@ function sendEdgeRequest(pth: string, method: string, body, headers) {
         if (error) {
           reject(error);
         } else if (isOkStatus(response.statusCode)) {
-          if (!body) {
-            resolve();
-          } else {
-            var responseObject = JSON.parse(body);
-            resolve(responseObject);
-          }
+          var obj: any = {
+            response,
+            body: !!body ? JSON.parse(body) : undefined
+          };
+          resolve(obj);
         } else {
           try {
             var errorObj = JSON.parse(body);
@@ -72,7 +71,7 @@ function del(path: string) {
 }
 
 export function deleteSandbox(sandboxId: string) {
-  return sendEdgeRequest(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`, 'DELETE', '', {});
+  return sendEdgeRequest(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`, 'DELETE', '', {}).then(r => r.body);
 }
 
 export function cloneSandbox(sandboxId: string, name: string, clonable = false) {
@@ -80,19 +79,29 @@ export function cloneSandbox(sandboxId: string, name: string, clonable = false) 
     name,
     isClonable: clonable
   };
-  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/clone`, body);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/clone`, body).then(r => r.body);
 }
 
 export function getAllSandboxes() {
-  return getJson(`${SANDBOX_API_BASE}/sandboxes`);
+  return getJson(`${SANDBOX_API_BASE}/sandboxes`).then(r => {
+    const limit = parseInt(r.response.headers['x-limit-sandboxes-limit']);
+    const remaining = parseInt(r.response.headers['x-limit-sandboxes-remaining']);
+    return {
+      quota: {
+        max: limit,
+        used: limit - remaining
+      },
+      result: r.body
+    }
+  });
 }
 
 export function getSandbox(sandboxId: string) {
-  return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`);
+  return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`).then(r => r.body);
 }
 
 export function updateSandbox(sandbox) {
-  return putJson(`${SANDBOX_API_BASE}/sandboxes/${sandbox.sandboxId}`, sandbox);
+  return putJson(`${SANDBOX_API_BASE}/sandboxes/${sandbox.sandboxId}`, sandbox).then(r => r.body);
 }
 
 export function createFromRules(papiRules, requestHostnames, name, isClonable) {
@@ -102,7 +111,7 @@ export function createFromRules(papiRules, requestHostnames, name, isClonable) {
     createFromRules: papiRules,
     isClonable: isClonable
   };
-  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj).then(r => r.body);
 }
 
 export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRules) {
@@ -110,7 +119,7 @@ export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRu
     requestHostnames: requestHostnames,
     createFromRules: papiRules
   };
-  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj).then(r => r.body);
 }
 
 export function addPropertyFromProperty(sandboxId: string, requestHostnames, fromPropertyObj) {
@@ -120,7 +129,7 @@ export function addPropertyFromProperty(sandboxId: string, requestHostnames, fro
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
   }
-  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj).then(r => r.body);
 }
 
 export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
@@ -132,12 +141,12 @@ export function createFromProperty(requestHostnames, name, isClonable, fromPrope
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
   }
-  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj);
+  return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj).then(r => r.body);
 }
 
 export function getRules(sandboxId: string, sandboxPropertyId: string) {
   var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}/rules`;
-  return getJson(endpoint);
+  return getJson(endpoint).then(r => r.body);
 }
 
 export function updateRules(sandboxId: string, sandboxPropertyId: string, rules) {
@@ -145,20 +154,20 @@ export function updateRules(sandboxId: string, sandboxPropertyId: string, rules)
   var body = {
     rules: rules.rules ? rules.rules : rules
   };
-  return putJson(endpoint, body);
+  return putJson(endpoint, body).then(r => r.body);
 }
 
 export function getProperty(sandboxId: string, sandboxPropertyId: string) {
   var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
-  return getJson(endpoint);
+  return getJson(endpoint).then(r => r.body);
 }
 
 export function updateProperty(sandboxId, propertyObj) {
   var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${propertyObj.sandboxPropertyId}`;
-  return putJson(endpoint, propertyObj);
+  return putJson(endpoint, propertyObj).then(r => r.body);
 }
 
 export function deleteProperty(sandboxId, sandboxPropertyId) {
   const endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
-  return del(endpoint);
+  return del(endpoint).then(r => r.body);
 }

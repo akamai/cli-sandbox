@@ -132,8 +132,9 @@ async function showRemoteSandboxes() {
   console.log("Loading sandboxes (via OPEN): \n");
   var localIds = new Set();
   sandboxClientManager.getAllSandboxes().forEach(sb => localIds.add(sb.sandboxId));
-  var result = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
-  var sandboxes = result.sandboxes.map(sb => {
+  const allSandboxesResult = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
+  const quota = allSandboxesResult.quota;
+  var sandboxes = allSandboxesResult.result.sandboxes.map(sb => {
     return {
       has_local: localIds.has(sb.sandboxId) ? "Y" : "N",
       name: sb.name,
@@ -142,6 +143,7 @@ async function showRemoteSandboxes() {
     }
   });
   showSandboxesTable(sandboxes);
+  console.log(`${quota.used}/${quota.max} sandboxes used`)
 }
 
 program
