@@ -347,7 +347,7 @@ function parseToBoolean(str: string) {
   if (!str) {
     return false;
   }
-  var r = str.trim().toLowerCase();
+  const parsedInput = str.trim().toLowerCase();
   var strToBool = new Map([
     ['true', true],
     ['t', true],
@@ -358,10 +358,10 @@ function parseToBoolean(str: string) {
     ['n', false],
     ['no', false],
   ]);
-  if (!strToBool.has(str)) {
+  if (!strToBool.has(parsedInput)) {
     logAndExit(`unable to determine boolean from input: ${str} please use y/n`)
   } else {
-    return strToBool.get(str);
+    return strToBool.get(parsedInput);
   }
 }
 
