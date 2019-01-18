@@ -144,7 +144,8 @@ Options:
 ## Customizable Template
 You can use this example "recipe" to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.
 
-```{  
+```
+{  
     "sandbox":{  
         "clonable":true,
         "properties":[  
