@@ -185,6 +185,11 @@ function getLogPath() {
 }
 
 export function flushLocalSandbox(sandboxId: string) {
+  if (!datastore.hasRecord(sandboxId)) {
+    return;
+  }
+
+  console.log("removing local files");
   var sb = datastore.getRecord(sandboxId);
   var folderPath = path.join(SANDBOXES_DIR, sb.folder);
   fsExtra.removeSync(folderPath);

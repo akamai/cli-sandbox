@@ -132,8 +132,9 @@ async function showRemoteSandboxes() {
   console.log("Loading sandboxes (via OPEN): \n");
   var localIds = new Set();
   sandboxClientManager.getAllSandboxes().forEach(sb => localIds.add(sb.sandboxId));
-  var result = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
-  var sandboxes = result.sandboxes.map(sb => {
+  const allSandboxesResult = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
+  const quota = allSandboxesResult.quota;
+  var sandboxes = allSandboxesResult.result.sandboxes.map(sb => {
     return {
       has_local: localIds.has(sb.sandboxId) ? "Y" : "N",
       name: sb.name,
@@ -142,6 +143,7 @@ async function showRemoteSandboxes() {
     }
   });
   showSandboxesTable(sandboxes);
+  console.log(`${quota.used}/${quota.max} sandboxes used`)
 }
 
 program
@@ -313,29 +315,18 @@ program
   });
 
 program
-  .command('delete <sandbox-identifier>')
+  .command('delete <sandbox-id>')
   .description('deletes this sandbox')
-  .action(async function (arg, options) {
+  .action(async function (sandboxId, options) {
     try {
-      var results = sandboxClientManager.searchLocalSandboxes(arg);
-      if (results.length > 1) {
-        logAndExit(`${results.length} match input. Please be more specific.`);
-      } else {
-        if (!await cliUtils.confirm('are you sure you want to delete this sandbox?')) {
-          return;
-        }
-
-        if (results.length == 1) {
-          var sb = results[0];
-          var progressMsg = `deleting sandboxId: ${sb.sandboxId} name: ${sb.name}`;
-          await cliUtils.spinner(sandboxSvc.deleteSandbox(sb.sandboxId), progressMsg);
-          console.log("removing local files");
-          sandboxClientManager.flushLocalSandbox(sb.sandboxId);
-        } else {
-          var msg = `deleting sandboxId: ${arg}`;
-          await cliUtils.spinner(sandboxSvc.deleteSandbox(arg), msg);
-        }
+      if (!await cliUtils.confirm('are you sure you want to delete this sandbox?')) {
+        return;
       }
+
+      var progressMsg = `deleting sandboxId: ${sandboxId}`;
+      await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
+
+      sandboxClientManager.flushLocalSandbox(sandboxId);
     } catch (e) {
       console.error(e);
     }
@@ -345,7 +336,7 @@ function parseToBoolean(str: string) {
   if (!str) {
     return false;
   }
-  var r = str.trim().toLowerCase();
+  const parsedInput = str.trim().toLowerCase();
   var strToBool = new Map([
     ['true', true],
     ['t', true],
@@ -356,10 +347,10 @@ function parseToBoolean(str: string) {
     ['n', false],
     ['no', false],
   ]);
-  if (!strToBool.has(str)) {
+  if (!strToBool.has(parsedInput)) {
     logAndExit(`unable to determine boolean from input: ${str} please use y/n`)
   } else {
-    return strToBool.get(str);
+    return strToBool.get(parsedInput);
   }
 }
 

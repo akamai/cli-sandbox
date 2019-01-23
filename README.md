@@ -144,7 +144,8 @@ Options:
 ## Customizable Template
 You can use this example "recipe" to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.
 
-```{  
+```
+{  
     "sandbox":{  
         "clonable":true,
         "properties":[  
@@ -189,7 +190,7 @@ You can use this example "recipe" to quickly customize the sandbox to your devel
 ```
 1. Edit the information according to your development environment and property specifications.
 1. Save the file with a `.json` extension (e.g., `example_recipe.json`)
-1. Run this command on your file ` ./akamai-sandbox create --recipe=./example/example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
+1. Run this command on your file `akamai sandbox create --recipe=./example/example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
 
 ## Resources
 For more information on Sandbox, refer to the [User Guide](https://learn.akamai.com/en-us/webhelp/sandbox/sandbox-user-guide/).
