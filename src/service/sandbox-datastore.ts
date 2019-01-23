@@ -66,6 +66,10 @@ export class SandboxDatastore {
     return this.data[sandboxId];
   }
 
+  hasRecord(sandboxId: string): boolean {
+    return !!this.getRecord(sandboxId);
+  }
+
   deleteRecord(sandboxId: string) {
     delete this.data[sandboxId];
     this.flushToFile();

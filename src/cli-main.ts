@@ -315,29 +315,18 @@ program
   });
 
 program
-  .command('delete <sandbox-identifier>')
+  .command('delete <sandbox-id>')
   .description('deletes this sandbox')
-  .action(async function (arg, options) {
+  .action(async function (sandboxId, options) {
     try {
-      var results = sandboxClientManager.searchLocalSandboxes(arg);
-      if (results.length > 1) {
-        logAndExit(`${results.length} match input. Please be more specific.`);
-      } else {
-        if (!await cliUtils.confirm('are you sure you want to delete this sandbox?')) {
-          return;
-        }
-
-        if (results.length == 1) {
-          var sb = results[0];
-          var progressMsg = `deleting sandboxId: ${sb.sandboxId} name: ${sb.name}`;
-          await cliUtils.spinner(sandboxSvc.deleteSandbox(sb.sandboxId), progressMsg);
-          console.log("removing local files");
-          sandboxClientManager.flushLocalSandbox(sb.sandboxId);
-        } else {
-          var msg = `deleting sandboxId: ${arg}`;
-          await cliUtils.spinner(sandboxSvc.deleteSandbox(arg), msg);
-        }
+      if (!await cliUtils.confirm('are you sure you want to delete this sandbox?')) {
+        return;
       }
+
+      var progressMsg = `deleting sandboxId: ${sandboxId}`;
+      await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
+
+      sandboxClientManager.flushLocalSandbox(sandboxId);
     } catch (e) {
       console.error(e);
     }
