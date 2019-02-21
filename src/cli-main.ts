@@ -733,7 +733,7 @@ program
   .option('-n, --name <string>', 'name of sandbox')
   .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
   .option('--recipe <path>', 'path to recipe json file')
-  .option('-C, --usecpcode <cpcode>', 'top-level cpcode to use and bypass during create')
+  .option('-C, --usecpcode <cpcode>', 'specify a pre-existing cpcode instead of letting the system generate a new one')
   .action(async function (options) {
     helpExitOnNoArgs(options);
     const cpcode = options.usecpcode;
