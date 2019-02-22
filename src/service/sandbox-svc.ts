@@ -104,13 +104,18 @@ export function updateSandbox(sandbox) {
   return putJson(`${SANDBOX_API_BASE}/sandboxes/${sandbox.sandboxId}`, sandbox).then(r => r.body);
 }
 
-export function createFromRules(papiRules, requestHostnames, name, isClonable) {
+export function createFromRules(papiRules, requestHostnames, name, isClonable, cpcode) {
   var bodyObj = {
     name: name,
     requestHostnames: requestHostnames,
     createFromRules: papiRules,
     isClonable: isClonable
   };
+
+  if(cpcode) {
+    bodyObj['cpcode'] = cpcode;
+  }
+
   return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj).then(r => r.body);
 }
 
@@ -132,7 +137,7 @@ export function addPropertyFromProperty(sandboxId: string, requestHostnames, fro
   return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj).then(r => r.body);
 }
 
-export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj) {
+export function createFromProperty(requestHostnames, name, isClonable, fromPropertyObj, cpcode) {
   var bodyObj = {
     name: name,
     createFromProperty: fromPropertyObj,
@@ -140,6 +145,10 @@ export function createFromProperty(requestHostnames, name, isClonable, fromPrope
   };
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
+  }
+
+  if(cpcode) {
+    bodyObj['cpcode'] = cpcode;
   }
   return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj).then(r => r.body);
 }
