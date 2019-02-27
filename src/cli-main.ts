@@ -826,6 +826,62 @@ program
     }
   });
 
+function addPropertyToSandbox(sandboxId, property, rulesPath, hostname, requestHostnames){
+  if (property) {
+    return addPropertyToSandboxFromProperty(sandboxId, requestHostnames, property);
+  } else if (rulesPath) {
+    return addPropertyFromRules(sandboxId, rulesPath, requestHostnames);
+  } else if (hostname) {
+    return addPropertyToSandboxFromHostname(sandboxId, requestHostnames, hostname);
+  } else {
+    logAndExit(`critical error while adding property to the sandbox : ${sandboxId}. rulesPath or property needs to be defined.`);
+  }
+}
+
+// add-property to sandbox command definitions
+program
+  .command('add-property [sandbox-identifier]')
+  .description('add a property to a sandbox')
+  .option('-r, --rules <file>', 'papi json file')
+  .option('-p, --property <property_id | property_name : version>', 'property to use. if no version is specified the latest will be used.')
+  .option('-o, --hostname <hostname>', 'the hostname of your akamai property (e.g. www.example.com)')
+  .option('-H, --requesthostnames <string>', 'comma separated list of request hostnames')
+  .action(async function(arg, options) {
+    helpExitOnNoArgs(options);
+    try {
+      const papiFilePath = options.rules;
+      const propertySpecifier= options.property;
+      const hostnameSpecifier = options.hostname;
+      const hostnamesCsv = options.requesthostnames;
+
+      let sandboxId = null;
+      if (!arg) {
+        sandboxId = sandboxClientManager.getCurrentSandboxId();
+        if (!sandboxId) {
+          logAndExit('Unable to determine sandbox_id');
+        }
+      } else {
+        sandboxId = getSandboxIdFromIdentifier(arg);
+      }
+
+      if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
+        logAndExit(`Exactly one of the following must be specified: --property, --rules, --hostname. Please pick only one of those arguments.`)
+      }
+
+      if (!hostnamesCsv && papiFilePath) {
+        logAndExit('--requesthostnames must be specified when specifying --rules');
+      }
+      const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
+
+      addPropertyToSandbox(sandboxId, propertySpecifier, papiFilePath, hostnameSpecifier, hostnames);
+    }
+    catch (e) {
+      console.error(e);
+    }
+  });
+
+
+
 function helpExitOnNoArgs(cmd) {
   var len = process.argv.slice(2).length;
   if (!len || len <= 1) {
