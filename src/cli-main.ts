@@ -785,8 +785,11 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
   console.log('building origin list');
   var origins: Array<string> = await getOriginListForSandboxId(sandboxId);
   var passThrough = false;
+  let hasVariableForOrigin = false;
   if (origins.length > 0) {
     console.log(`Detected the following origins: ${origins.join(', ')}`);
+    const regexPMUserVariable = new RegExp("(\{\{(.)+\}\})");
+    hasVariableForOrigin = origins.some(origin => regexPMUserVariable.test(origin));
     if (await cliUtils.confirm('Would you like the Sandbox Client to proxy these to the destination defined in the Akamai config?')) {
       passThrough = true;
     }
@@ -796,6 +799,10 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
   var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
 
   console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
+  if(hasVariableForOrigin) {
+    console.error(`Atleast one of the property of this sandbox has user defined variable for an origin hostname. Please edit the sandbox client configuration file ${registration.configPath} 
+    manually and replace the variable with an actual hostname`);
+  }
 }
 
 async function downloadClientIfNecessary() {
