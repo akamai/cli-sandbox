@@ -736,7 +736,7 @@ program
   .option('-C, --cpcode <cpcode>', 'specify a pre-existing cpcode instead of letting the system generate a new one')
   .action(async function (options) {
     helpExitOnNoArgs(options);
-    const cpcode = options.usecpcode;
+    const cpcode = options.cpcode;
     try {
       const recipePath = options.recipe;
       if (recipePath) {
