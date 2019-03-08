@@ -800,8 +800,8 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
 
   console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath} please edit this file`);
   if(hasVariableForOrigin) {
-    console.error(`Atleast one of the property of this sandbox has user defined variable for an origin hostname. Please edit the sandbox client configuration file ${registration.configPath} 
-    manually and replace the variable with an actual hostname`);
+    console.error(`\nAt least one property of this sandbox has a user defined variable for origin hostname. 
+    Please edit the sandbox client configuration file /home/lgassawa/devpops/cli-sandbox/cache/sandbox-cli/sandbox-cli/sandboxes/DEVPOPS-789/config.json and replace the variable with a static hostname`);
   }
 }
 
