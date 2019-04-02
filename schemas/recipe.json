@@ -48,24 +48,7 @@
               "property": {
                 "type": "string"
               }
-            },
-            "oneOf": [
-              {
-                "required": [
-                  "rulesPath"
-                ]
-              },
-              {
-                "required": [
-                  "property"
-                ]
-              },
-              {
-                "required": [
-                  "hostname"
-                ]
-              }
-            ]
+            }
           },
           "minItems": 1
         }

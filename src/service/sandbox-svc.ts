@@ -104,13 +104,17 @@ export function updateSandbox(sandbox) {
   return putJson(`${SANDBOX_API_BASE}/sandboxes/${sandbox.sandboxId}`, sandbox).then(r => r.body);
 }
 
-export function createFromRules(papiRules, requestHostnames, name, isClonable, cpcode) {
+export function createFromRules(papiRules, fromPropertyObj, requestHostnames, name, isClonable, cpcode) {
   var bodyObj = {
     name: name,
-    requestHostnames: requestHostnames,
     createFromRules: papiRules,
+    createFromProperty: fromPropertyObj,
     isClonable: isClonable
   };
+
+  if (requestHostnames) {
+    bodyObj['requestHostnames'] = requestHostnames;
+  }
 
   if(cpcode) {
     bodyObj['cpcode'] = cpcode;
