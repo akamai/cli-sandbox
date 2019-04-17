@@ -503,6 +503,10 @@ function parsePropertySpecifier(propertySpecifier) {
   return propertySpecObj;
 }
 
+function parseHostnameSpecifier(hostnameSpecifier) {
+  return { hostname : hostnameSpecifier};
+}
+
 async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Array<string>, propertySpecifier: string) {
   const propertySpecObj = parsePropertySpecifier(propertySpecifier);
   const msg = `adding property from: ${JSON.stringify(propertySpecObj)}`;
@@ -791,7 +795,7 @@ program
           propForRules = parsePropertySpecifier(propertySpecifier);
         }
         else {
-          propForRules = hostnameSpecifier;
+          propForRules = parseHostnameSpecifier(hostnameSpecifier);
         }
       }
 
