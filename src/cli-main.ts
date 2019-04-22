@@ -464,12 +464,13 @@ async function addPropertyFromRules(sandboxId: string, papiFilePath: string, hos
   return await cliUtils.spinner(sandboxSvc.addPropertyFromRules(sandboxId, hostnames, papiJson), `adding sandbox property to ${sandboxId}`);
 }
 
-async function createFromRules(papiFilePath: string, hostnames: Array<string>, isClonable: boolean, name: string, cpcode: number) {
+async function createFromRules(papiFilePath: string, propForRules: string, hostnames: Array<string>, isClonable: boolean, name: string, cpcode: number) {
   if (!fs.existsSync(papiFilePath)) {
     logAndExit(`file: ${papiFilePath} does not exist`);
   }
   const papiJson = getJsonFromFile(papiFilePath);
-  return await cliUtils.spinner(sandboxSvc.createFromRules(papiJson, hostnames, name, isClonable, cpcode), "creating new sandbox");
+  const propertySpecObjMsg = `${JSON.stringify(propForRules)}`;
+  return await cliUtils.spinner(sandboxSvc.createFromRules(papiJson, propForRules, hostnames, name, isClonable, cpcode), "creating new sandbox");
 }
 
 function parsePropertySpecifier(propertySpecifier) {
@@ -500,6 +501,10 @@ function parsePropertySpecifier(propertySpecifier) {
     propertySpecObj.propertyVersion = propertyVersion;
   }
   return propertySpecObj;
+}
+
+function parseHostnameSpecifier(hostnameSpecifier) {
+  return { hostname : hostnameSpecifier};
 }
 
 async function addPropertyToSandboxFromProperty(sandboxId: string, hostnames: Array<string>, propertySpecifier: string) {
@@ -547,8 +552,20 @@ async function createFromPropertiesRecipe(recipe, cpcode) {
   const properties = sandboxRecipe.properties;
 
   const firstProp = properties[0];
+  let propForRules;
+  if (firstProp.rulesPath) {
+    console.log(`Found rules in properties.. Finding property to base the sandbox to be created..`);
+
+    if (firstProp.property) {
+      propForRules = parsePropertySpecifier(firstProp.property);
+    }
+    else if (firstProp.hostname){
+      propForRules = firstProp.hostname;
+    }
+  }
+
   console.log(`creating sandbox & property 1 from recipe`);
-  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, sandboxRecipe, cpcode));
+  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, propForRules, sandboxRecipe, cpcode));
 
   for (var i = 1; i < properties.length; i++) {
     try {
@@ -590,23 +607,34 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
   sandboxRecipe.name = name || sandboxRecipe.name;
+  var idx = 0;
+
   if (sandboxRecipe.properties) {
     sandboxRecipe.properties.forEach(p => {
       if (p.rulesPath) {
+        if(!oneOf(p.property, p.hostname)) {
+          logAndExit(`Error with property ${idx}. Either property or hostname must be specified to base the created sandbox on when a rulesPath is specified.`);
+        }
         p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
       }
+      idx++;
     });
-    var idx = 0;
+
+    idx = 0;
     sandboxRecipe.properties.forEach(p => {
-      if (!oneOf(p.rulesPath, p.property, p.hostname)) {
-        logAndExit(`Error with property ${idx}. Please specify only one of: rulesPath, property, or hostname`);
+      if (!oneOf(p.property, p.hostname)) {
+        logAndExit(`Error with property ${idx}. Please specify only one of: property or hostname`);
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
       }
-      if (p.rulesPath && (!p.requestHostnames || p.requestHostnames.length === 0)) {
-        logAndExit(`Error with property ${idx}. Must specify requestHostnames array when using rulesPath`);
-      }
+
+      // requestHostnames is no longer required when specifying rules, the hostnames can be obtained from the createFromProperty specified
+      // However, providing requestHostnames will override those hostnames.
+
+      /* if (p.rulesPath && (!p.requestHostnames || p.requestHostnames.length === 0)) {
+          logAndExit(`Error with property ${idx}. Must specify requestHostnames array when using rulesPath`);
+      }*/
       idx++;
     });
   }
@@ -691,13 +719,13 @@ function createRecipeProperty(rp, sandboxId) {
   }
 }
 
-function createRecipeSandboxAndProperty(rp, recipe, cpcode) {
+function createRecipeSandboxAndProperty(rp, propertyForRules, recipe, cpcode) {
   if (rp.property) {
     return createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
   } else if (rp.hostname) {
     return createFromHostname(rp.hostname, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
   } else if (rp.rulesPath) {
-    return createFromRules(rp.rulesPath, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
+    return createFromRules(rp.rulesPath, propertyForRules, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
   } else {
     logAndExit("critical error with recipe property. rulesPath or property needs to be defined.");
   }
@@ -726,7 +754,7 @@ function isNonEmptyString(obj) {
 program
   .command('create')
   .description('create a new sandbox')
-  .option('-r, --rules <file>', 'papi json file')
+  .option('-r, --rules <file>', 'papi json file. a property or hostname must also be specified to base the created sandbox on')
   .option('-p, --property <property_id | property_name : version>', 'property to use. if no version is specified the latest will be used.')
   .option('-o, --hostname <hostname>', 'the hostname of your akamai property (e.g. www.example.com)')
   .option('-c, --clonable <boolean>', 'make this sandbox clonable')
@@ -752,22 +780,44 @@ program
       const propertySpecifier = options.property;
       const hostnameSpecifier = options.hostname;
 
+      let propForRules;
       //validation
       if (!isNonEmptyString(name)) {
         logAndExit(`You must provide a name for your sandbox`);
       }
-      if (!oneOf(propertySpecifier, papiFilePath, hostnameSpecifier)) {
-        logAndExit(`Exactly one of the following must be specified: --property, --rules, --hostname. Please pick only one of those arguments.`)
+
+      // if --rules is specified, then either --property or --hostname must be specified
+      if (papiFilePath) {
+        if(!oneOf(propertySpecifier, hostnameSpecifier)) {
+          logAndExit(`Either --property or --hostname must be specified to base the created sandbox on when --rules is specified.`);
+        }
+        if(propertySpecifier) {
+          propForRules = parsePropertySpecifier(propertySpecifier);
+        }
+        else {
+          propForRules = parseHostnameSpecifier(hostnameSpecifier);
+        }
       }
 
-      if (!hostnamesCsv && papiFilePath) {
-        logAndExit('--requesthostnames must be specified when specifying --rules');
+      // if hostnames are accepted with --rules then leave this below logic as it is
+      // else add logic when --rules and --hostname is detected as invalid
+      if (!oneOf(propertySpecifier, hostnameSpecifier)) {
+        logAndExit(`Exactly one of the following must be specified : --property, --hostname. Please pick only one of those arguments.`)
       }
+
+
+      // requestHostnames is no longer required when specifying --rules, the hostnames can be obtained from the createFromProperty specified
+      // However, providing requestHostnames will override those hostnames.
+
+      /* if (!hostnamesCsv && papiFilePath) {
+        logAndExit('--requesthostnames must be specified when specifying --rules');
+      }*/
+
       const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
 
       var r = null;
       if (papiFilePath) {
-        r = await createFromRules(papiFilePath, hostnames, isClonable, name, cpcode);
+        r = await createFromRules(papiFilePath, propForRules, hostnames, isClonable, name, cpcode);
       } else if (propertySpecifier) {
         r = await createFromProperty(propertySpecifier, hostnames, isClonable, name, cpcode);
       } else if (hostnameSpecifier) {

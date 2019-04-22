@@ -3,6 +3,10 @@
     "clonable": true,
     "properties": [
       {
+        "rulesPath": "papi-rules-1.json",
+        "hostname": "www.example.com"
+      },
+      {
         "property": "447903:2"
       }
     ]
