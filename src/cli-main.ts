@@ -937,7 +937,116 @@ program
     }
   });
 
+async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action) {
+  action = (action == 'add') ? 'adding' : 'updating';
+  const msg = `${action} edgeworker ${edgeworkerId} for: ${sandboxId} from ${edgeworkerTarballPath}`;
+  return await cliUtils.spinner(sandboxSvc.pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath), msg);
+}
 
+program
+  .command('add-edgeworker <edgeworker-id> <edgeworker-tarball>')
+  .description('add edgeworker to the currently active sandbox')
+  .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
+    helpExitOnNoArgs(options);
+    addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'add');
+  });
+
+program
+  .command('update-edgeworker <edgeworker-id> <edgeworker-tarball>')
+  .description('update edgeworker to the currently active sandbox')
+  .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
+    helpExitOnNoArgs(options);
+    addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'update');
+  });
+
+async function addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, action) {
+  try {
+
+    let sandboxId = sandboxClientManager.getCurrentSandboxId();
+    if (!sandboxId) {
+      logAndExit('Unable to determine sandbox_id');
+    }
+    let buffer = fs.readFileSync(edgeworkerTarballPath);
+    let hex = buffer.toString('hex');
+    await pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action);
+    console.log('done!');
+
+  }
+  catch (e) {
+    console.error(e);
+  }
+}
+
+async function pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
+  const msg = `downloading edgeworker ${edgeworkerId} for: ${sandboxId}`;
+  return await cliUtils.spinner(sandboxSvc.pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
+}
+
+async function makeFileForEdgeworker(edgeworkerId, hexFile) {
+
+  let edgeworkerFolder = path.join(process.env.AKAMAI_CLI_CACHE_PATH,
+    `sandbox-cli/sandboxes`,
+    sandboxClientManager.getCurrentSandboxName(),
+    'edgeworkers/');
+  if(!fs.existsSync(edgeworkerFolder)) {
+    fs.mkdirSync(edgeworkerFolder);
+  }
+  let filename = `${edgeworkerId}_${new Date().getTime()}.tgz`;
+  fs.writeFileSync(`${edgeworkerFolder}/${filename}`, Buffer.from(hexFile, "hex"));
+  console.log(`Downloaded edgeworker file :${filename} for edgeworker id : ${edgeworkerId} at location : ${edgeworkerFolder}`);
+}
+
+program
+  .command('download-edgeworker <edgeworker-id>')
+  .description('download edgeworker for the currently active sandbox')
+  .action(async function(edgeworkerId, options) {
+    helpExitOnNoArgs(options);
+    try {
+
+
+      let sandboxId = sandboxClientManager.getCurrentSandboxId();
+      if (!sandboxId) {
+        logAndExit('Unable to determine sandbox_id');
+      }
+      let hexFile = await pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId);
+
+      makeFileForEdgeworker(edgeworkerId, hexFile);
+
+    }
+    catch (e) {
+      console.error(e);
+    }
+  });
+
+
+async function deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
+  const msg = `deleting edgeworker ${edgeworkerId} for: ${sandboxId}`;
+  return await cliUtils.spinner(sandboxSvc.deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
+}
+
+program
+  .command('delete-edgeworker <edgeworker-id>')
+  .description('delete edgeworker for the currently active sandbox')
+  .action(async function(edgeworkerId, options) {
+    helpExitOnNoArgs(options);
+    try {
+
+      let sandboxId = sandboxClientManager.getCurrentSandboxId();
+      if (!await cliUtils.confirm(
+        `are you sure you want to delete the edgeworker with id: ${edgeworkerId} for the currently active sandbox from the server : ${sandboxId}?`)) {
+        return;
+      }
+      if (!sandboxId) {
+        logAndExit('Unable to determine sandbox_id');
+      }
+      await deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId);
+      console.log('done!');
+
+    }
+    catch (e) {
+      console.error(e);
+    }
+  });
 
 function helpExitOnNoArgs(cmd) {
   var len = process.argv.slice(2).length;

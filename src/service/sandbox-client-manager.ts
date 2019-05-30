@@ -204,6 +204,14 @@ export function getCurrentSandboxId() {
   return c.sandboxId;
 }
 
+export function getCurrentSandboxName() {
+  var c = datastore.getCurrent();
+  if (!c) {
+    return null;
+  }
+  return c.name;
+}
+
 export function hasCurrent() {
   return !!getCurrentSandboxId();
 }
