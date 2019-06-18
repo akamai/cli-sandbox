@@ -182,16 +182,20 @@ function populateOrigins(papiNode, originsList) {
   if (papiNode == null) {
     return;
   }
-  papiNode.behaviors
-    .filter(b => b.name === 'origin')
-    .filter(b => b.options && b.options.hostname)
-    .forEach(b => {
-      originsList.push(b.options.hostname);
-    });
+  if (papiNode.behaviors) {
+    papiNode.behaviors
+      .filter(b => b.name === 'origin')
+      .filter(b => b.options && b.options.hostname)
+      .forEach(b => {
+        originsList.push(b.options.hostname);
+      });
+  }
 
-  papiNode.children.forEach(c => {
-    populateOrigins(c, originsList);
-  });
+  if (papiNode.children) {
+    papiNode.children.forEach(c => {
+      populateOrigins(c, originsList);
+    });
+  }
 }
 
 function getOriginsForPapiRules(papiRules) {
