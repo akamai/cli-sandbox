@@ -129,7 +129,7 @@ function showSandboxesTable(sandboxes) {
 }
 
 async function showRemoteSandboxes() {
-  console.log("Loading sandboxes (via OPEN): \n");
+  console.log("Loading sandboxes: \n");
   var localIds = new Set();
   sandboxClientManager.getAllSandboxes().forEach(sb => localIds.add(sb.sandboxId));
   const allSandboxesResult = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
@@ -210,7 +210,7 @@ async function showSandboxOverview(sandboxId: string) {
   }
   var sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
 
-  cliUtils.logWithBorder("Detailed information (via OPEN):");
+  cliUtils.logWithBorder("Detailed information for the sandbox:");
 
   console.log(`name: ${sandbox.name}`);
   console.log(`created by: ${sandbox.createdBy}`);
@@ -602,7 +602,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   const recipe = getJsonFromFile(recipeFilePath);
   var r = validateSchema(recipe);
   if (r.errors.length > 0) {
-    logAndExit(`There are issues with your recipe file\n ${r}. Edit as required.`);
+    logAndExit(`There are issues with your recipe file\n ${r}.`);
   }
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
