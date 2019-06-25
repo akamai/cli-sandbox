@@ -412,7 +412,7 @@ program
 
       const propertyChange: boolean = !!options.requesthostnames || !!options.rules;
       if (propertyChange && sandbox.properties.length > 1) {
-        logAndExit(`Unable to update property as multiple were found (${sandbox.properties.length}). Use `update-property` to add additional properties to the sandbox.`);
+        logAndExit(`Unable to update property as multiple were found (${sandbox.properties.length}). Use update-property to add additional properties to the sandbox.`);
       }
       const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
       await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
