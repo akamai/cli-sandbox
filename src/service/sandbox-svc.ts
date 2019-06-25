@@ -1,7 +1,9 @@
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
+import * as fs from 'fs';
 
 var accountKey: string = null;
+
 
 const SANDBOX_API_BASE = '/sandbox-api/v1';
 
@@ -13,20 +15,35 @@ function isOkStatus(code) {
   return code >= 200 && code < 300;
 }
 
-function sendEdgeRequest(pth: string, method: string, body, headers) {
+function sendEdgeRequest(pth: string, method: string, body, headers, filePath? : string) {
   const edge = envUtils.getEdgeGrid();
   var path = pth;
   if (accountKey) {
     path += `?accountSwitchKey=${accountKey}`;
   }
+
   return new Promise<any>(
     (resolve, reject) => {
-      edge.auth({
-        path,
-        method,
-        headers,
-        body
-      });
+      if(filePath){
+        let formData = {
+          tarballfile : fs.createReadStream(filePath)
+        }
+        edge.auth({
+          path,
+          method,
+          headers,
+          body,
+          formData
+        })
+      }
+      else {
+        edge.auth({
+          path,
+          method,
+          headers,
+          body
+        })
+      }
 
       edge.send(function (error, response, body) {
         if (error) {
@@ -34,7 +51,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers) {
         } else if (isOkStatus(response.statusCode)) {
           var obj: any = {
             response,
-            body: !!body ? JSON.parse(body) : undefined
+            body: !!body ? parseIfJSON(body) : undefined
           };
           resolve(obj);
         } else {
@@ -50,6 +67,14 @@ function sendEdgeRequest(pth: string, method: string, body, headers) {
     });
 }
 
+function parseIfJSON(value) {
+  try {
+    return JSON.parse(value);
+  } catch (e) {
+    return value;
+  }
+}
+
 function postJson(path: string, body) {
   return sendEdgeRequest(path, 'POST', body, {
     'Content-Type': 'application/json'
@@ -62,8 +87,19 @@ function putJson(path: string, body) {
   });
 }
 
+function putTarball(path: string, edgeworkerTarballPath) {
+  return sendEdgeRequest(path, 'PUT', '', {
+    'Content-Type': 'application/tar+gzip'
+  }, edgeworkerTarballPath);
+}
+
 function getJson(path: string) {
   return sendEdgeRequest(path, 'GET', '', {});
+}
+
+function getTarball(path: string) {
+  return sendEdgeRequest(path, 'GET', '', {
+    'Accept' : 'application/vnd.akamai-sandbox.hex+text'});
 }
 
 function del(path: string) {
@@ -184,3 +220,23 @@ export function deleteProperty(sandboxId, sandboxPropertyId) {
   const endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties/${sandboxPropertyId}`;
   return del(endpoint).then(r => r.body);
 }
+
+export function pushEdgeWorkerToSandbox(sandboxId: string, edgeworkerId: string, edgeworkerTarballPath) {
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/edgeworkers/${edgeworkerId}`;
+
+  return putTarball(endpoint, edgeworkerTarballPath).then(r => r.body);
+}
+
+export function pullEdgeWorkerFromSandbox(sandboxId: string, edgeworkerId: string) {
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/edgeworkers/${edgeworkerId}`;
+
+  return getTarball(endpoint).then(r => r.body);
+}
+
+export function deleteEdgeWorkerFromSandbox(sandboxId: string, edgeworkerId: string) {
+  var endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/edgeworkers/${edgeworkerId}`;
+
+  return del(endpoint).then(r => r.body);
+}
+
+
