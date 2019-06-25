@@ -86,7 +86,7 @@ program
     } else {
       var command = program.commands.find(c => c._name == arg);
       if (!command) {
-        console.log(`Could not find a command for ${arg}.`);
+        console.log(`Could not find a command for ${arg}`);
       } else {
         command.outputHelp();
       }
@@ -327,7 +327,7 @@ program
         return;
       }
 
-      var progressMsg = `Deleting sandboxId: ${sandboxId}.`;
+      var progressMsg = `Deleting sandboxId: ${sandboxId}`;
       await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
 
       sandboxClientManager.flushLocalSandbox(sandboxId);
@@ -368,7 +368,7 @@ program
     var requestHostnames = options.requesthostnames;
     try {
       await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
-      console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}.`);
+      console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
     } catch (e) {
       console.log(e);
     }
@@ -376,9 +376,9 @@ program
 
 async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxId, sandboxPropertyId) {
   if (requestHostnames) {
-    const property = await cliUtils.spinner(sandboxSvc.getProperty(sandboxId, sandboxPropertyId), `Loading sandboxPropertyId: ${sandboxPropertyId}.`);
+    const property = await cliUtils.spinner(sandboxSvc.getProperty(sandboxId, sandboxPropertyId), `Loading sandboxPropertyId: ${sandboxPropertyId}`);
     property.requestHostnames = parseHostnameCsv(requestHostnames);
-    await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, property), `Updating sandboxPropertyId: ${sandboxPropertyId}.`);
+    await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, property), `Updating sandboxPropertyId: ${sandboxPropertyId}`);
   }
   if (rulesFilePath) {
     const rules = getJsonFromFile(rulesFilePath);
@@ -420,7 +420,7 @@ program
       }
       const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
       await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
-      console.log(`Successfully updated sandbox_id: ${sandboxId}.`)
+      console.log(`Successfully updated sandbox_id: ${sandboxId}`)
     } catch (e) {
       console.log(e);
     }
@@ -606,7 +606,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   const recipe = getJsonFromFile(recipeFilePath);
   var r = validateSchema(recipe);
   if (r.errors.length > 0) {
-    logAndExit(`There are issues with your recipe file\n ${r}.`);
+    logAndExit(`There are issues with your recipe file\n ${r}`);
   }
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
@@ -617,7 +617,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     sandboxRecipe.properties.forEach(p => {
       if (p.rulesPath) {
         if(!oneOf(p.property, p.hostname)) {
-          logAndExit(`Error with property ${idx}. In order to use the rulesPath, you need to specify a property or hostname to base the sandbox on.`);
+          logAndExit(`Error with property ${idx} In order to use the rulesPath, you need to specify a property or hostname to base the sandbox on.`);
         }
         p.rulesPath = resolveRulesPath(recipeFilePath, p.rulesPath);
       }
@@ -627,7 +627,7 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     idx = 0;
     sandboxRecipe.properties.forEach(p => {
       if (!oneOf(p.property, p.hostname)) {
-        logAndExit(`Error with property ${idx}. Specify only one argument, choose either property or hostname.`);
+        logAndExit(`Error with property ${idx} Specify only one argument, choose either property or hostname.`);
       }
       if (p.rulesPath && !fs.existsSync(p.rulesPath)) {
         logAndExit(`Error with property ${idx} could not load file at path: ${p.rulesPath}`);
@@ -656,19 +656,19 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
   if (!sandboxRecipe.properties) {
     logAndExit('Missing properties, unable to perform operation.');
   }
-  console.log(`Loading information for sandbox_id: ${sandboxId}.`);
+  console.log(`Loading information for sandbox_id: ${sandboxId}`);
   const sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
   sandbox.isClonable = recipe.clonable;
   sandbox.name = recipe.name;
 
-  console.log(`Updating sandbox information for sandbox_id: ${sandboxId}.`);
+  console.log(`Updating sandbox information for sandbox_id: ${sandboxId}`);
   await sandboxSvc.updateSandbox(sandbox);
 
   var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
   const first = pIds[0];
   for (var i = 1; i < pIds.length; i++) {
     const propertyId = pIds[i];
-    console.log(`Deleting sandbox_property_id: ${propertyId}.`);
+    console.log(`Deleting sandbox_property_id: ${propertyId}`);
     await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, propertyId));
   }
 
@@ -677,16 +677,16 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
     requestHostnames: [uuidv1()]
   };
 
-  console.log(`Updating sandbox_property_id: ${first}.`);
+  console.log(`Updating sandbox_property_id: ${first}`);
   await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, propertyObj));
 
   for (var i = 0; i < sandboxRecipe.properties.length; i++) {
     const rp = sandboxRecipe.properties[i];
-    console.log(`Re-building property: ${i + 1}.`);
+    console.log(`Re-building property: ${i + 1}`);
     await cliUtils.spinner(createRecipeProperty(rp, sandboxId));
   }
 
-  console.log(`Deleting sandbox_property_id: ${first}.`);
+  console.log(`Deleting sandbox_property_id: ${first}`);
   await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, first));
 }
 
@@ -757,8 +757,8 @@ function isNonEmptyString(obj) {
 
 program
   .command('create')
-  .description('create a new sandbox')
-  .option('-r, --rules <file>', 'json file containing a PAPI rule tree. You need to specify a property or hostname to base the sandbox on when using this method.')
+  .description('Creates a new sandbox')
+  .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree. You need to specify a property or hostname to base the sandbox on when using this method.')
   .option('-p, --property <property_id | property_name : version>', 'Property to base the sandbox on. If an active version is not found, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
   .option('-c, --clonable <boolean>', 'Make this sandbox clonable.')
@@ -852,7 +852,7 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
   console.log('registering sandbox in local datastore');
   var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
 
-  console.info(`Successfully created sandbox_id ${sandboxId}. Generated sandbox client configuration at ${registration.configPath}. Edit this file to specify the port and host for your dev environment.`);
+  console.info(`Successfully created sandbox_id ${sandboxId} Generated sandbox client configuration at ${registration.configPath} Edit this file to specify the port and host for your dev environment.`);
   if(hasVariableForOrigin) {
     console.error(`\nAt least one property of this sandbox has a user defined variable for origin hostname.`)
     console.error(`Edit the sandbox client configuration file ${registration.configPath} and replace the variable with a static hostname.`);
@@ -873,7 +873,7 @@ async function downloadClientIfNecessary() {
 
 program
   .command('start')
-  .description('starts the sandbox client')
+  .description('Starts the sandbox client.')
   .action(async function (dir, cmd) {
     try {
       if (sandboxClientManager.getAllSandboxes().length == 0) {
@@ -895,14 +895,14 @@ function addPropertyToSandbox(sandboxId, property, rulesPath, hostname, requestH
   } else if (hostname) {
     return addPropertyToSandboxFromHostname(sandboxId, requestHostnames, hostname);
   } else {
-    logAndExit(`critical error while adding property to the sandbox : ${sandboxId}. rulesPath or property needs to be defined.`);
+    logAndExit(`Critical error while adding property to the sandbox : ${sandboxId} You need to define the rulesPath or property.`);
   }
 }
 
 // add-property to sandbox command definitions
 program
   .command('add-property [sandbox-identifier]')
-  .description('add a property to a sandbox')
+  .description('Add a property to a sandbox')
   .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
   .option('-p, --property <property_id | property_name : version>', 'Property to use. If you do not specify a version, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
