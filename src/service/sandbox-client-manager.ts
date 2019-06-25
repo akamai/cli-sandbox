@@ -84,6 +84,7 @@ function getClientTemplatePath() {
 function buildClientConfig(origins: Array<string>, passThrough: boolean) {
   var template: string = fs.readFileSync(getClientTemplatePath()).toString();
   var clientConfig = JSON.parse(template);
+
   if (!origins || origins.length == 0) {
     clientConfig.originMappings.push({
       from: '<ORIGIN HOSTNAME>',

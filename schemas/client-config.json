@@ -1,10 +1,10 @@
 {
   "id": "/clientConfig",
   "type": "object",
-  "description": "object that specifies the information about how the sandbox client should be configured",
+  "description": "Object that describes how the Sandbox Client should be configured.",
   "properties": {
     "sandboxServerInfo": {
-      "description": "Information about how traffic should be served by the sandbox connector",
+      "description": "Information about how traffic should be served by the Sandbox Client.",
       "type": "object",
       "properties": {
         "secure": {

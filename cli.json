@@ -6,7 +6,7 @@
     {
       "name": "sandbox",
       "version": "1.0.0",
-      "description": "Manage akamai sandbox environments",
+      "description": "Manage Akamai Sandbox environments.",
       "bin": "https://github.com/akamai/cli-sandbox/releases/download/{{.Version}}/akamai-{{.Name}}-{{.Version}}-{{.OS}}-{{.Arch}}{{.BinSuffix}}"
     }
   ]

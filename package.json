@@ -1,7 +1,7 @@
 {
   "name": "akamai-sandbox-cli",
-  "version": "1.2.1",
-  "description": "A tool to help manage Akamai Sandboxes. Uses the sandbox {OPEN} API.",
+  "version": "1.1.10",
+  "description": "A tool that makes it easier to manage Akamai Sandboxes. Call the Sandbox API from the command line.",
   "repository": "https://github.com/akamai/cli-sandbox",
   "scripts": {
     "build": "npm run build-ts",
