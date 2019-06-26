@@ -5,7 +5,7 @@
   "properties": {
     "sandbox": {
       "type": "object",
-      "description": "object that specifies the information about how the sandbox should be configured",
+      "description": "Object that describes how the sandbox should be configured.",
       "properties": {
         "name": {
           "description": "The name of the sandbox defined by the developer when the sandbox was created. If you do not specify a name, the name will default to the `sandboxId`.",
@@ -32,7 +32,7 @@
           "items": {
             "properties": {
               "requestHostnames": {
-                "description": "A set of hostnames for use in testing within a developer's sandbox.",
+                "description": "A set of hostnames that can be used for testing within a developer's sandbox.",
                 "type": "array",
                 "items": {
                   "type": "string"

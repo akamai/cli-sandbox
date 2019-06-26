@@ -38,10 +38,10 @@ When creating the sandbox based on a property, the CLI automatically scans the P
 my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com
 building origin list 
 Detected the following origins: origin-www.example.com  
-? Would you like the Sandbox Client to proxy these to the destination defined in the Akamai config? **Yes**
+? Do you want the Sandbox Client to proxy the origins in your dev environment to the destination defined in the Akamai config? Enter **y** and the CLI will automatically update your configuration file. If you want to route sandbox traffic to different development origins, enter **n** to customize the origin mappings.
 registering sandbox in local datastore
 sandbox_id: 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52 sandbox_for_example.com is now active  
-Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json please edit this file  
+Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json Edit this file to specify the port and host for your dev environment. 
 my_laptop:~ username$
 ``` 
 
