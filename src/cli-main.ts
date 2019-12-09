@@ -3,7 +3,10 @@ import * as fs from 'fs';
 import * as path from "path";
 import * as os from "os";
 
+
 const uuidv1 = require('uuid/v1');
+const jwtDecode = require('jwt-decode');
+
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
@@ -940,6 +943,42 @@ program
       console.error(e);
     }
   });
+
+// sync sandbox from remote using jwt
+program
+  .command('sync-sandbox <jwtToken>')
+  .description('Sync down a remote sandbox to the local system')
+  .option('-n, --name <string>', 'Custom sandbox name for local system')
+  .action(async function(jwt, options) {
+    helpExitOnNoArgs(options);
+      try {
+        let sandboxName;
+        const decodedJwt :object= jwtDecode(jwt);
+        const sandboxId = decodedJwt[`sandboxID`];
+        console.log(`Syncing sandbox with sandboxId : ${sandboxId}`);
+        if(isNonEmptyString(options.name)) {
+          sandboxName = options.name
+        }
+        else {
+          let sandbox = await sandboxSvc.getSandbox(sandboxId, true);
+          sandboxName = sandbox['name'];
+          console.log(`Fetched Sandbox Name : ${sandboxName} from the provided jwtToken`);
+        }
+
+        const hasSandboxName = await sandboxClientManager.hasSandboxFolder(sandboxName);
+        if(!hasSandboxName) {
+          await registerSandbox(sandboxId, jwt, sandboxName);
+        }
+        else {
+          console.error(`Error: Sandbox folder name ${sandboxName} already exists locally. Please provide a different sandbox name for this local sandbox folder using option -n or --name.`)
+        }
+      }
+      catch(e) {
+        console.error(`Error syncing sandbox : ${e.message}`);
+      }
+
+  });
+
 
 async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action) {
   action = (action == 'add') ? 'adding' : 'updating';
