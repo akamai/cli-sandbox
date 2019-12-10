@@ -948,7 +948,7 @@ program
 program
   .command('sync-sandbox <jwtToken>')
   .description('Sync down a remote sandbox to the local system')
-  .option('-n, --name <string>', 'Custom sandbox name for local system')
+  .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
   .action(async function(jwt, options) {
     helpExitOnNoArgs(options);
       try {
