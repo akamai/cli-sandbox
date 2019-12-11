@@ -3,12 +3,21 @@ import * as cliUtils from '../utils/cli-utils';
 import * as fs from 'fs';
 
 var accountKey: string = null;
+var accountWide: boolean = false;
 
 
 const SANDBOX_API_BASE = '/sandbox-api/v1';
 
 export function setAccountKey(account: string) {
   accountKey = account;
+}
+
+export function setAccountWide(value: boolean) {
+  accountWide = value;
+}
+
+export function getAccountWide() {
+  return accountWide;
 }
 
 function isOkStatus(code) {
@@ -94,6 +103,9 @@ function putTarball(path: string, edgeworkerTarballPath) {
 }
 
 function getJson(path: string) {
+  if(accountWide) {
+    path += `?access=account`;
+  }
   return sendEdgeRequest(path, 'GET', '', {});
 }
 
@@ -132,10 +144,7 @@ export function getAllSandboxes() {
   });
 }
 
-export function getSandbox(sandboxId: string, accountWide=false) {
-  if(accountWide) {
-    return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}?access=account`).then(r => r.body);
-  }
+export function getSandbox(sandboxId: string) {
   return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`).then(r => r.body);
 }
 
