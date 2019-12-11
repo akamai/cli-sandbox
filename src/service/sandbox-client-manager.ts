@@ -217,6 +217,11 @@ export function hasCurrent() {
   return !!getCurrentSandboxId();
 }
 
+export async function hasSandboxFolder(sandboxName){
+  const files = fs.readdirSync(SANDBOXES_DIR);
+  return files.some(fileItem => fileItem.toLowerCase() === sandboxName.toLowerCase());
+}
+
 export async function executeSandboxClient() {
   var args = [
     `"${await envUtils.getJavaExecutablePath()}"`,

@@ -132,7 +132,10 @@ export function getAllSandboxes() {
   });
 }
 
-export function getSandbox(sandboxId: string) {
+export function getSandbox(sandboxId: string, accountWide=false) {
+  if(accountWide) {
+    return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}?access=account`).then(r => r.body);
+  }
   return getJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}`).then(r => r.body);
 }
 
