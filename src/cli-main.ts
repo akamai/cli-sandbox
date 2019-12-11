@@ -956,6 +956,16 @@ program
         let sandboxName;
         const decodedJwt :object= jwtDecode(jwt);
         const sandboxId = decodedJwt[`sandboxID`];
+        let localMatchedSandboxName = null;
+        let matchedLocalSandbox = sandboxClientManager.getAllSandboxes().some(sandbox => {
+          if(sandbox.sandboxId == sandboxId) {
+            localMatchedSandboxName = sandbox.name;
+            return true;
+          }
+        });
+        if(matchedLocalSandbox) {
+          logAndExit(`\nAborting Sync...\nThe sandbox with sandbox id : ${sandboxId} and sandbox name ${localMatchedSandboxName} is already synced locally. Further syncs are not required for further updates to this sandbox.`);
+        }
         console.log(`Syncing sandbox with sandboxId : ${sandboxId}`);
         if(isNonEmptyString(options.name)) {
           sandboxName = options.name
@@ -975,7 +985,8 @@ program
         }
       }
       catch(e) {
-        console.error(`Error syncing sandbox : ${e.message}`);
+        let errorMessage = e.message != null ? e.message : e;
+        console.error(`Error syncing sandbox : ${errorMessage}`);
       }
     sandboxSvc.setAccountWide(false);
 
