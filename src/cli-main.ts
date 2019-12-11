@@ -951,6 +951,7 @@ program
   .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
   .action(async function(jwt, options) {
     helpExitOnNoArgs(options);
+    sandboxSvc.setAccountWide(true);
       try {
         let sandboxName;
         const decodedJwt :object= jwtDecode(jwt);
@@ -960,7 +961,7 @@ program
           sandboxName = options.name
         }
         else {
-          let sandbox = await sandboxSvc.getSandbox(sandboxId, true);
+          let sandbox = await sandboxSvc.getSandbox(sandboxId);
           sandboxName = sandbox['name'];
           console.log(`Fetched Sandbox Name : ${sandboxName} from the provided jwtToken`);
         }
@@ -976,6 +977,7 @@ program
       catch(e) {
         console.error(`Error syncing sandbox : ${e.message}`);
       }
+    sandboxSvc.setAccountWide(false);
 
   });
 
