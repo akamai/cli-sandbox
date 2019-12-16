@@ -3,7 +3,10 @@ import * as fs from 'fs';
 import * as path from "path";
 import * as os from "os";
 
+
 const uuidv1 = require('uuid/v1');
+const jwtDecode = require('jwt-decode');
+
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
@@ -941,6 +944,44 @@ program
     }
   });
 
+// sync sandbox from remote using jwt
+program
+  .command('sync-sandbox <jwtToken>')
+  .description('Sync down a remote sandbox to the local system')
+  .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
+  .action(async function(jwt, options) {
+    helpExitOnNoArgs(options);
+    sandboxSvc.setAccountWide(true);
+      try {
+        let sandboxName;
+        const decodedJwt :object= jwtDecode(jwt);
+        const sandboxId = decodedJwt[`sandboxID`];
+        console.log(`Syncing sandbox with sandboxId : ${sandboxId}`);
+        if(isNonEmptyString(options.name)) {
+          sandboxName = options.name
+        }
+        else {
+          let sandbox = await sandboxSvc.getSandbox(sandboxId);
+          sandboxName = sandbox['name'];
+          console.log(`Fetched Sandbox Name : ${sandboxName} from the provided jwtToken`);
+        }
+
+        const hasSandboxName = await sandboxClientManager.hasSandboxFolder(sandboxName);
+        if(!hasSandboxName) {
+          await registerSandbox(sandboxId, jwt, sandboxName);
+        }
+        else {
+          console.error(`Error: Sandbox folder name ${sandboxName} already exists locally. Please provide a different sandbox name for this local sandbox folder using option -n or --name.`)
+        }
+      }
+      catch(e) {
+        console.error(`Error syncing sandbox : ${e.message}`);
+      }
+    sandboxSvc.setAccountWide(false);
+
+  });
+
+
 async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action) {
   action = (action == 'add') ? 'adding' : 'updating';
   const msg = `${action} edgeworker ${edgeworkerId} for: ${sandboxId} from ${edgeworkerTarballPath}`;
@@ -949,7 +990,7 @@ async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarbal
 
 program
   .command('add-edgeworker <edgeworker-id> <edgeworker-tarball>')
-  .description('add edgeworker to the currently active sandbox')
+  .description('Add edgeworker to the currently active sandbox. The edgeworker-id must be an unsigned integer.')
   .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
     helpExitOnNoArgs(options);
     addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'add');
@@ -957,7 +998,7 @@ program
 
 program
   .command('update-edgeworker <edgeworker-id> <edgeworker-tarball>')
-  .description('update edgeworker to the currently active sandbox')
+  .description('Update edgeworker to the currently active sandbox')
   .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
     helpExitOnNoArgs(options);
     addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'update');
@@ -969,6 +1010,10 @@ async function addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, action
     let sandboxId = sandboxClientManager.getCurrentSandboxId();
     if (!sandboxId) {
       logAndExit('Unable to determine sandbox_id');
+    }
+
+    if(!fs.existsSync(edgeworkerTarballPath)) {
+      logAndExit(`Provided edgeworker tarball path ${edgeworkerTarballPath} not found.`);
     }
     let buffer = fs.readFileSync(edgeworkerTarballPath);
     let hex = buffer.toString('hex');
@@ -1002,7 +1047,7 @@ async function makeFileForEdgeworker(edgeworkerId, hexFile) {
 
 program
   .command('download-edgeworker <edgeworker-id>')
-  .description('download edgeworker for the currently active sandbox')
+  .description('Download edgeworker for the currently active sandbox')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
@@ -1030,14 +1075,14 @@ async function deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
 
 program
   .command('delete-edgeworker <edgeworker-id>')
-  .description('delete edgeworker for the currently active sandbox')
+  .description('Delete edgeworker for the currently active sandbox')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
 
       let sandboxId = sandboxClientManager.getCurrentSandboxId();
       if (!await cliUtils.confirm(
-        `are you sure you want to delete the edgeworker with id: ${edgeworkerId} for the currently active sandbox from the server : ${sandboxId}?`)) {
+        `Are you sure you want to delete the edgeworker with id: ${edgeworkerId} for the currently active sandbox : ${sandboxId} `)) {
         return;
       }
       if (!sandboxId) {
