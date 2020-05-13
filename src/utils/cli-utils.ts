@@ -1,5 +1,3 @@
-import {Runtime} from "inspector";
-
 const inquirer = require('inquirer');
 const Spinner = require('cli-spinner').Spinner;
 
@@ -19,6 +17,11 @@ function log(txt, type = 'log') {
   } else {
     throw `bad args: ${type}`;
   }
+}
+
+export function logAndExit(exitCode: number, msg: string) {
+  console.log(msg);
+  process.exit(exitCode);
 }
 
 export async function confirm(msg: string) {

@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 import * as fs from 'fs';
 import * as path from "path";
-import * as os from "os";
-
 
 const uuidv1 = require('uuid/v1');
 const jwtDecode = require('jwt-decode');
-
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
@@ -16,11 +13,6 @@ if (!CLI_CACHE_PATH) {
 
 if (!fs.existsSync(CLI_CACHE_PATH)) {
   logAndExit(`AKAMAI_CLI_CACHE_PATH is set to ${CLI_CACHE_PATH} but this directory does not exist.`);
-}
-
-const edgeRcPath = path.resolve(os.homedir(), '.edgerc');
-if (!fs.existsSync(edgeRcPath)) {
-  logAndExit(`Could not find .edgerc to authenticate Akamai API calls. Add your credential set to the .edgerc file at this path: ${edgeRcPath}`);
 }
 
 import * as envUtils from './utils/env-utils';
