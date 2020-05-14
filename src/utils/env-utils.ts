@@ -1,32 +1,33 @@
 var EdgeGrid = require('edgegrid');
-import * as os from 'os';
-
-var findJavaHome = require('find-java-home');
+const untildify = require('untildify');
 var path = require('path');
-import * as edgeRcParser from './edgerc-parser';
+const fs = require('fs');
+import * as os from 'os';
+import * as cliUtils from './cli-utils';
+var findJavaHome = require('find-java-home');
 
-const _edge = null;
 const edgeRcParams = {
   section: process.env.AKAMAI_EDGERC_SECTION || 'default',
   path: process.env.AKAMAI_EDGERC || path.resolve(os.homedir(), '.edgerc'),
   debug: false
 };
 
-function getEdgeGridSection(section) {
-  var sections = edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
-  return sections.find(s => s.sectionName === section);
-}
-
-function getAllEdgeGridSections() {
-  return edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
-}
-
 export function getEdgeGrid() {
-  if (_edge != null) {
-    return _edge;
+
+  if (!fs.existsSync(untildify(edgeRcParams.path))) {
+    cliUtils.logAndExit(1,`ERROR: Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
   }
-  var s = getEdgeGridSection(edgeRcParams.section);
-  return new EdgeGrid(s.clientToken, s.clientSecret, s.accessToken, s.host, edgeRcParams.debug);
+
+  try {
+    return new EdgeGrid({
+      path: untildify(edgeRcParams.path),
+      section: edgeRcParams.section,
+      debug: edgeRcParams.debug
+    });
+  }
+  catch(e) {
+    cliUtils.logAndExit(1, `ERROR: ${e.message}`);
+  }
 }
 
 export function setDebugMode(debug: boolean) {
