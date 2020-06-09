@@ -94,7 +94,7 @@ program
         await downloadClientIfNecessary();
       }
     } catch (e) {
-      console.error(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -149,7 +149,7 @@ program
         showLocalSandboxes();
       }
     } catch (e) {
-      console.error(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -236,7 +236,7 @@ program
       }
       await showSandboxOverview(sandboxIdToUse);
     } catch (e) {
-      console.error(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -269,7 +269,7 @@ function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true)
   var results = sandboxClientManager.searchLocalSandboxes(identifier);
   if (results.length == 0) {
     if (failOnNoResult) {
-      cliUtils.logAndExit(1,`CERROR: ould not find any local sandboxes matching input: ${identifier}`)
+      cliUtils.logAndExit(1,`ERROR: Could not find any local sandboxes matching input: ${identifier}`)
     } else {
       return null;
     }
@@ -360,7 +360,7 @@ program
       await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
       console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
     } catch (e) {
-      console.log(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -412,7 +412,7 @@ program
       await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
       console.log(`Successfully updated sandbox_id: ${sandboxId}`)
     } catch (e) {
-      console.log(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -446,7 +446,7 @@ program
 
       await registerSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name);
     } catch (e) {
-      console.log(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -821,7 +821,7 @@ program
       await registerSandbox(r.sandboxId, r.jwtToken, name);
 
     } catch (e) {
-      console.log(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -856,8 +856,7 @@ async function downloadClientIfNecessary() {
       await sandboxClientManager.downloadClient();
     }
   } catch (e) {
-    console.log('Critical error: got exception during client download: ' + e);
-    process.exit();
+    cliUtils.logAndExit(1, 'ERROR: got exception during client download: ' + e);
   }
 }
 
@@ -873,7 +872,7 @@ program
         await sandboxClientManager.executeSandboxClient();
       }
     } catch (e) {
-      console.error(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -927,7 +926,7 @@ program
       addPropertyToSandbox(sandboxId, propertySpecifier, papiFilePath, hostnameSpecifier, hostnames);
     }
     catch (e) {
-      console.error(e);
+      cliUtils.logAndExit(1, e);
     }
   });
 
@@ -943,6 +942,9 @@ program
         let sandboxName;
         const decodedJwt :object= jwtDecode(jwt);
         const sandboxId = decodedJwt[`sandboxID`];
+        if (sandboxId === undefined) {
+          cliUtils.logAndExit(1, 'ERROR: Could not find sandboxID in the provided jwtToken');
+        }
         let localMatchedSandboxName = null;
         let matchedLocalSandbox = sandboxClientManager.getAllSandboxes().some(sandbox => {
           if(sandbox.sandboxId == sandboxId) {
