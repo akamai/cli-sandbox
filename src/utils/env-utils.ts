@@ -4,6 +4,7 @@ var path = require('path');
 const fs = require('fs');
 import * as os from 'os';
 import * as cliUtils from './cli-utils';
+
 var findJavaHome = require('find-java-home');
 
 const edgeRcParams = {
@@ -15,7 +16,7 @@ const edgeRcParams = {
 export function getEdgeGrid() {
 
   if (!fs.existsSync(untildify(edgeRcParams.path))) {
-    cliUtils.logAndExit(1,`ERROR: Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
+    cliUtils.logAndExit(1, `ERROR: Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
   }
 
   try {
@@ -24,8 +25,7 @@ export function getEdgeGrid() {
       section: edgeRcParams.section,
       debug: edgeRcParams.debug
     });
-  }
-  catch(e) {
+  } catch (e) {
     cliUtils.logAndExit(1, `ERROR: ${e.message}`);
   }
 }

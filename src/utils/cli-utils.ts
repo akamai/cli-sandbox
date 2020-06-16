@@ -20,7 +20,11 @@ function log(txt, type = 'log') {
 }
 
 export function logAndExit(exitCode: number, msg: string) {
-  console.log(msg);
+  if (exitCode === 0) {
+    console.log(msg);
+  } else {
+    console.error(msg);
+  }
   process.exit(exitCode);
 }
 
