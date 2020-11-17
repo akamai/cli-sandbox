@@ -463,7 +463,6 @@ async function createFromRules(papiFilePath: string, propForRules: string, hostn
     cliUtils.logAndExit(1, `ERROR: File: ${papiFilePath} does not exist.`);
   }
   const papiJson = getJsonFromFile(papiFilePath);
-  `${JSON.stringify(propForRules)}`;
   return await cliUtils.spinner(sandboxSvc.createFromRules(papiJson, propForRules, hostnames, name, isClonable, cpcode), "creating new sandbox");
 }
 
