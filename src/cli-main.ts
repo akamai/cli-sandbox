@@ -41,11 +41,11 @@ function validateSchema(json) {
 }
 
 function readFileAsString(path) {
-  var data = fs.readFileSync(path);
+  const data = fs.readFileSync(path);
   return data.toString();
 }
 
-var program = require('commander');
+const program = require('commander');
 
 program
   .version(pkginfo.version)
@@ -74,7 +74,7 @@ program
     if (!arg) {
       program.outputHelp();
     } else {
-      var command = program.commands.find(c => c._name == arg);
+      const command = program.commands.find(c => c._name == arg);
       if (!command) {
         console.log(`Could not find a command for ${arg}`);
       } else {
@@ -86,7 +86,7 @@ program
 program
   .command('install')
   .description('Downloads and installs the Sandbox Client software.')
-  .action(async function (dir, cmd) {
+  .action(async function () {
     try {
       if (sandboxClientManager.isAlreadyInstalled()) {
         console.log("Sandbox Client is already installed.");
@@ -100,7 +100,7 @@ program
 
 function showLocalSandboxes() {
   console.log("Local sandboxes:\n");
-  var sandboxes = sandboxClientManager.getAllSandboxes().map(sb => {
+  const sandboxes = sandboxClientManager.getAllSandboxes().map(sb => {
     return {
       current: sb.current ? "YES" : "",
       name: sb.name,
@@ -120,11 +120,11 @@ function showSandboxesTable(sandboxes) {
 
 async function showRemoteSandboxes() {
   console.log("Loading sandboxes: \n");
-  var localIds = new Set();
+  const localIds = new Set();
   sandboxClientManager.getAllSandboxes().forEach(sb => localIds.add(sb.sandboxId));
   const allSandboxesResult = await cliUtils.spinner(sandboxSvc.getAllSandboxes());
   const quota = allSandboxesResult.quota;
-  var sandboxes = allSandboxesResult.result.sandboxes.map(sb => {
+  const sandboxes = allSandboxesResult.result.sandboxes.map(sb => {
     return {
       has_local: localIds.has(sb.sandboxId) ? "Y" : "N",
       name: sb.name,
@@ -154,12 +154,12 @@ program
   });
 
 async function getRulesForSandboxId(sandboxId: string) {
-  var sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
-  var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
-  var r = [];
+  const sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
+  const pIds = sandbox.properties.map(p => p.sandboxPropertyId);
+  const r = [];
 
-  for (var pid of pIds) {
-    var obj: any = await cliUtils.spinner(sandboxSvc.getRules(sandboxId, pid));
+  for (let pid of pIds) {
+    const obj: any = await cliUtils.spinner(sandboxSvc.getRules(sandboxId, pid));
     r.push({
       title: `sandbox_property_id: ${pid}`,
       rules: obj.rules
@@ -189,20 +189,20 @@ function populateOrigins(papiNode, originsList) {
 }
 
 function getOriginsForPapiRules(papiRules) {
-  var o = [];
+  const o = [];
   populateOrigins(papiRules, o);
   return o;
 }
 
 async function showSandboxOverview(sandboxId: string) {
-  var localSandbox = sandboxClientManager.getSandboxLocalData(sandboxId);
+  const localSandbox = sandboxClientManager.getSandboxLocalData(sandboxId);
   if (localSandbox) {
     cliUtils.logWithBorder("Local sandbox information:");
     console.log("sandbox_id: " + sandboxId);
     console.log("local directory: " + localSandbox.sandboxFolder);
     console.log(`current: ${localSandbox.isCurrent}\n`);
   }
-  var sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
+  const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
 
   cliUtils.logWithBorder("Detailed information for the sandbox:");
 
@@ -222,9 +222,9 @@ async function showSandboxOverview(sandboxId: string) {
 program
   .command('show [sandbox-identifier]')
   .description('Provides details about a sandbox.')
-  .action(async function (arg, cmd) {
+  .action(async function (arg) {
     try {
-      var sandboxIdToUse = null;
+      let sandboxIdToUse = null;
       if (!arg) {
         if (sandboxClientManager.hasCurrent()) {
           sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
@@ -243,9 +243,9 @@ program
 program
   .command('rules [sandbox-identifier]')
   .description('Shows rule tree for sandbox.')
-  .action(async function (arg, cmd) {
+  .action(async function (arg) {
     try {
-      var sandboxIdToUse = null;
+      let sandboxIdToUse = null;
       if (!arg) {
         if (sandboxClientManager.hasCurrent()) {
           sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
@@ -255,7 +255,7 @@ program
       } else {
         sandboxIdToUse = getSandboxIdFromIdentifier(arg);
       }
-      var rulesList = await getRulesForSandboxId(sandboxIdToUse);
+      const rulesList = await getRulesForSandboxId(sandboxIdToUse);
       rulesList.forEach(o => {
         cliUtils.logWithBorder(o.title, 'err');
         console.log(cliUtils.toJsonPretty(o.rules));
@@ -266,7 +266,7 @@ program
   });
 
 function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true) {
-  var results = sandboxClientManager.searchLocalSandboxes(identifier);
+  const results = sandboxClientManager.searchLocalSandboxes(identifier);
   if (results.length == 0) {
     if (failOnNoResult) {
       cliUtils.logAndExit(1, `ERROR: Could not find any local sandboxes matching input: ${identifier}`)
@@ -291,7 +291,7 @@ function orCurrent(sandboxIdentifier) {
 }
 
 function getSandboxIdFromIdentifier(sandboxIdentifier: string) {
-  var sb = getLocalSandboxForIdentifier(sandboxIdentifier, false);
+  const sb = getLocalSandboxForIdentifier(sandboxIdentifier, false);
   if (sb) {
     return sb.sandboxId;
   } else {
@@ -302,8 +302,8 @@ function getSandboxIdFromIdentifier(sandboxIdentifier: string) {
 program
   .command('use <sandbox-identifier>')
   .description('Sets the identified sandbox as currently active.')
-  .action(function (arg, options) {
-    var sb = getLocalSandboxForIdentifier(arg);
+  .action(function (arg) {
+    const sb = getLocalSandboxForIdentifier(arg);
     sandboxClientManager.makeCurrent(sb.sandboxId);
     console.log(`Sandbox: ${sb.name} is now active`)
   });
@@ -311,13 +311,13 @@ program
 program
   .command('delete <sandbox-id>')
   .description('Deletes the sandbox.')
-  .action(async function (sandboxId, options) {
+  .action(async function (sandboxId) {
     try {
       if (!await cliUtils.confirm('Are you sure you want to delete this sandbox?')) {
         return;
       }
 
-      var progressMsg = `Deleting sandboxId: ${sandboxId}`;
+      const progressMsg = `Deleting sandboxId: ${sandboxId}`;
       await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
 
       sandboxClientManager.flushLocalSandbox(sandboxId);
@@ -331,7 +331,7 @@ function parseToBoolean(str: string) {
     return false;
   }
   const parsedInput = str.trim().toLowerCase();
-  var strToBool = new Map([
+  const strToBool = new Map([
     ['true', true],
     ['t', true],
     ['y', true],
@@ -354,8 +354,8 @@ program
   .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
   .option('-H, --requesthostnames <string>', 'Comma-delimited list of request hostnames within the sandbox.')
   .action(async function (sandboxId, sandboxPropertyId, options) {
-    var rules = options.rules;
-    var requestHostnames = options.requesthostnames;
+    const rules = options.rules;
+    const requestHostnames = options.requesthostnames;
     try {
       await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
       console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
@@ -463,15 +463,15 @@ async function createFromRules(papiFilePath: string, propForRules: string, hostn
     cliUtils.logAndExit(1, `ERROR: File: ${papiFilePath} does not exist.`);
   }
   const papiJson = getJsonFromFile(papiFilePath);
-  const propertySpecObjMsg = `${JSON.stringify(propForRules)}`;
+  `${JSON.stringify(propForRules)}`;
   return await cliUtils.spinner(sandboxSvc.createFromRules(papiJson, propForRules, hostnames, name, isClonable, cpcode), "creating new sandbox");
 }
 
 function parsePropertySpecifier(propertySpecifier) {
-  var propertySpec;
-  var propertyVersion;
+  let propertySpec;
+  let propertyVersion;
   if (propertySpecifier.indexOf(':') > -1) {
-    var parts = propertySpecifier.split(':').map(s => s.trim().toLowerCase());
+    const parts = propertySpecifier.split(':').map(s => s.trim().toLowerCase());
     propertySpec = parts[0];
     propertyVersion = parts[1];
   } else {
@@ -483,7 +483,7 @@ function parsePropertySpecifier(propertySpecifier) {
   }
 
   const propertySpecObj: any = {};
-  var key;
+  let key;
   if (validator.isInt(propertySpec)) {
     key = 'propertyId';
   } else {
@@ -524,7 +524,7 @@ async function createFromHostname(hostname: string, hostnames: Array<string>, is
 }
 
 async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
-  var rulesList = await getRulesForSandboxId(sandboxId);
+  const rulesList = await getRulesForSandboxId(sandboxId);
   const origins = new Set();
   rulesList.forEach(entry => {
     const originsForRules = getOriginsForPapiRules(entry.rules);
@@ -560,7 +560,7 @@ async function createFromPropertiesRecipe(recipe, cpcode) {
   console.log(`Creating sandbox and property 1 from recipe.`);
   const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, propForRules, sandboxRecipe, cpcode));
 
-  for (var i = 1; i < properties.length; i++) {
+  for (let i = 1; i < properties.length; i++) {
     try {
       console.log(`Creating property ${i + 1} from recipe.`);
       await cliUtils.spinner(createRecipeProperty(properties[i], r.sandboxId));
@@ -593,14 +593,14 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
     cliUtils.logAndExit(1, `ERROR: File ${recipeFilePath} does not exist.`);
   }
   const recipe = getJsonFromFile(recipeFilePath);
-  var r = validateSchema(recipe);
+  const r = validateSchema(recipe);
   if (r.errors.length > 0) {
     cliUtils.logAndExit(1, `ERROR: There are issues with your recipe file\n ${r}`);
   }
   const sandboxRecipe = recipe.sandbox;
   sandboxRecipe.clonable = clonable || sandboxRecipe.clonable;
   sandboxRecipe.name = name || sandboxRecipe.name;
-  var idx = 0;
+  let idx = 0;
 
   if (sandboxRecipe.properties) {
     sandboxRecipe.properties.forEach(p => {
@@ -647,9 +647,9 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
   console.log(`Updating sandbox information for sandbox_id: ${sandboxId}`);
   await sandboxSvc.updateSandbox(sandbox);
 
-  var pIds = sandbox.properties.map(p => p.sandboxPropertyId);
+  const pIds = sandbox.properties.map(p => p.sandboxPropertyId);
   const first = pIds[0];
-  for (var i = 1; i < pIds.length; i++) {
+  for (let i = 1; i < pIds.length; i++) {
     const propertyId = pIds[i];
     console.log(`Deleting sandbox_property_id: ${propertyId}`);
     await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, propertyId));
@@ -663,7 +663,7 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
   console.log(`Updating sandbox_property_id: ${first}`);
   await cliUtils.spinner(sandboxSvc.updateProperty(sandboxId, propertyObj));
 
-  for (var i = 0; i < sandboxRecipe.properties.length; i++) {
+  for (let i = 0; i < sandboxRecipe.properties.length; i++) {
     const rp = sandboxRecipe.properties[i];
     console.log(`Re-building property: ${i + 1}`);
     await cliUtils.spinner(createRecipeProperty(rp, sandboxId));
@@ -679,7 +679,7 @@ async function createFromRecipe(recipeFilePath, name, clonable, cpcode) {
 
   const sandboxRecipe = recipe.sandbox;
 
-  var res = null;
+  let res = null;
   if (sandboxRecipe.properties) {
     res = await createFromPropertiesRecipe(recipe, cpcode);
   } else if (sandboxRecipe.cloneFrom) {
@@ -719,8 +719,8 @@ function createRecipeSandboxAndProperty(rp, propertyForRules, recipe, cpcode) {
 }
 
 function oneOf(...args: any[]) {
-  var r = false;
-  for (var i = 0; i < args.length; i++) {
+  let r = false;
+  for (let i = 0; i < args.length; i++) {
     if (args[i]) {
       if (r) {
         return false;
@@ -793,7 +793,7 @@ program
 
       const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
 
-      var r = null;
+      let r = null;
       if (papiFilePath) {
         r = await createFromRules(papiFilePath, propForRules, hostnames, isClonable, name, cpcode);
       } else if (propertySpecifier) {
@@ -811,8 +811,8 @@ program
 
 async function registerSandbox(sandboxId: string, jwt: string, name: string, clientConfig = null) {
   console.log('building origin list');
-  var origins: Array<string> = await getOriginListForSandboxId(sandboxId);
-  var passThrough = false;
+  const origins: Array<string> = await getOriginListForSandboxId(sandboxId);
+  let passThrough = false;
   let hasVariableForOrigin = false;
   if (origins.length > 0) {
     console.log(`Detected the following origins: ${origins.join(', ')}`);
@@ -824,7 +824,7 @@ async function registerSandbox(sandboxId: string, jwt: string, name: string, cli
   }
 
   console.log('registering sandbox in local datastore');
-  var registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
+  const registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
 
   console.info(`Successfully created sandbox_id ${sandboxId} Generated sandbox client configuration at ${registration.configPath} Edit this file to specify the port and host for your dev environment.`);
   if (hasVariableForOrigin) {
@@ -847,13 +847,14 @@ async function downloadClientIfNecessary() {
 program
   .command('start')
   .description('Starts the sandbox client.')
-  .action(async function (dir, cmd) {
+  .option('--print-logs', 'Print logs to standard output.')
+  .action(async function (options) {
     try {
       if (sandboxClientManager.getAllSandboxes().length == 0) {
         console.log('there are no sandboxes configured');
       } else {
         await downloadClientIfNecessary();
-        await sandboxClientManager.executeSandboxClient();
+        await sandboxClientManager.executeSandboxClient(!!options.printLogs);
       }
     } catch (e) {
       cliUtils.logAndExit(1, 'ERROR: got exception during client execution: ' + e);
@@ -888,7 +889,7 @@ program
       const hostnameSpecifier = options.hostname;
       const hostnamesCsv = options.requesthostnames;
 
-      let sandboxId = null;
+      let sandboxId;
       if (!arg) {
         sandboxId = sandboxClientManager.getCurrentSandboxId();
         if (!sandboxId) {
@@ -1075,7 +1076,7 @@ program
   });
 
 function helpExitOnNoArgs(cmd) {
-  var len = process.argv.slice(2).length;
+  const len = process.argv.slice(2).length;
   if (!len || len <= 1) {
     cmd.outputHelp();
     process.exit();
