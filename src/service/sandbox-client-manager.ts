@@ -11,7 +11,7 @@ const shell = require('shelljs');
 const fsExtra = require('fs-extra');
 const download = require('download');
 
-const CONNECTOR_VERSION = '1.2.1';
+const CONNECTOR_VERSION = '1.3.0';
 const DOWNLOAD_PATH: string = `https://github.com/akamai/sandbox-client/releases/download/${CONNECTOR_VERSION}/`;
 const DOWNLOAD_FILE: string = `sandbox-client-${CONNECTOR_VERSION}-RELEASE-default.zip`;
 const DOWNLOAD_URL = DOWNLOAD_PATH + DOWNLOAD_FILE;
@@ -223,9 +223,9 @@ export async function hasSandboxFolder(sandboxName){
 }
 
 export async function executeSandboxClient(printLogs) {
-  let loggingPath = getLogPath();
-  let loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
-  let configPath = path.join(getCurrentSandboxFolder(), 'config.json');
+  const loggingPath = getLogPath();
+  const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
+  const configPath = path.join(getCurrentSandboxFolder(), 'config.json');
 
   const springProfiles = [];
   if (printLogs) {
@@ -234,7 +234,7 @@ export async function executeSandboxClient(printLogs) {
 
   const args = [
     `"${await envUtils.getJavaExecutablePath()}"`,
-    `-Dlogging.path="${loggingPath}"`,
+    `-Dlogging.file.path="${loggingPath}"`,
     `-Dlogging.config="${LOG_CONFIG_FILE}"`,
     `-jar "${JAR_FILE_PATH}"`,
     `--config="${configPath}"`,
@@ -250,7 +250,7 @@ export async function executeSandboxClient(printLogs) {
 
   shell.exec(cmd,  function(exitCode) {
     if (exitCode !== 0) {
-      console.log("Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.");
+      cliUtils.logAndExit(1, "ERROR: Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.");
     }
   });
 }
