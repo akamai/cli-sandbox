@@ -2,8 +2,8 @@ const inquirer = require('inquirer');
 const Spinner = require('cli-spinner').Spinner;
 
 export function logWithBorder(str, type = 'log') {
-  var t: string = `--- ${str} ---`;
-  var border = Array(t.length).fill('-').join('');
+  const t: string = `--- ${str} ---`;
+  const border = Array(t.length).fill('-').join('');
   log(border, type);
   log(t, type);
   log(border, type);
@@ -29,7 +29,7 @@ export function logAndExit(exitCode: number, msg: string) {
 }
 
 export async function confirm(msg: string) {
-  var answer = await inquirer.prompt([
+  const answer = await inquirer.prompt([
     {
       type: 'confirm',
       message: msg,
@@ -59,7 +59,7 @@ export function toJsonPretty(obj) {
 
 export async function progress(func, userMsg: string = '') {
   console.log(userMsg);
-  var written: number = 0;
+  let written: number = 0;
   const interval = setInterval(function () {
     process.stdout.write(".");
     written++;
