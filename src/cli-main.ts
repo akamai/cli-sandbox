@@ -27,14 +27,18 @@ if (envUtils.getNodeVersion() < 8) {
 const util = require('util');
 const validator = require('validator');
 const pkginfo = require('../package.json');
-
 const cTable = require('console.table');
-
 const Validator = require('jsonschema').Validator;
 const jsonSchemaValidator = new Validator();
 const recipeFileSchema = require('../schemas/recipe.json');
 const clientConfigSchema = require('../schemas/client-config.json');
+
 jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
+
+const OriginMapping = {
+  FROM_CONFIG: "config",
+  FROM_PROPERTY: "property"
+}
 
 function validateSchema(json) {
   return jsonSchemaValidator.validate(json, recipeFileSchema);
@@ -44,59 +48,6 @@ function readFileAsString(path) {
   const data = fs.readFileSync(path);
   return data.toString();
 }
-
-const program = require('commander');
-
-program
-  .version(pkginfo.version)
-  .description(pkginfo.description)
-  .option('--debug', 'Show debug information.')
-  .option('--edgerc <path>', 'Use edgerc file for authentication.')
-  .option('--section <name>', 'Use this section in edgerc file that contains the credential set.')
-  .option('--accountkey <account-id>', 'internal parameter')
-  .on("option:edgerc", function (edgeRcFilePath) {
-    envUtils.setEdgeRcFilePath(edgeRcFilePath);
-  })
-  .on("option:section", function (section) {
-    envUtils.setEdgeRcSection(section);
-  })
-  .on("option:accountkey", function (key) {
-    sandboxSvc.setAccountKey(key);
-  })
-  .on("option:debug", function () {
-    envUtils.setDebugMode(true);
-  });
-
-program
-  .command('help [command]')
-  .description('Displays help information for the given command.')
-  .action(function (arg) {
-    if (!arg) {
-      program.outputHelp();
-    } else {
-      const command = program.commands.find(c => c._name == arg);
-      if (!command) {
-        console.log(`Could not find a command for ${arg}`);
-      } else {
-        command.outputHelp();
-      }
-    }
-  });
-
-program
-  .command('install')
-  .description('Downloads and installs the Sandbox Client software.')
-  .action(async function () {
-    try {
-      if (sandboxClientManager.isAlreadyInstalled()) {
-        console.log("Sandbox Client is already installed.");
-      } else {
-        await downloadClientIfNecessary();
-      }
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception during client install: ' + e);
-    }
-  });
 
 function showLocalSandboxes() {
   console.log("Local sandboxes:\n");
@@ -135,23 +86,6 @@ async function showRemoteSandboxes() {
   showSandboxesTable(sandboxes);
   console.log(`${quota.used}/${quota.max} sandboxes used.`)
 }
-
-program
-  .command('list')
-  .alias('ls')
-  .description('Lists sandboxes that you have managed locally.')
-  .option('-r, --remote', 'Show sandboxes from the server.')
-  .action(async function (options) {
-    try {
-      if (options.remote) {
-        await showRemoteSandboxes();
-      } else {
-        showLocalSandboxes();
-      }
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception when listing sandboxes: ' + e);
-    }
-  });
 
 async function getRulesForSandboxId(sandboxId: string) {
   const sandbox: any = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
@@ -219,52 +153,6 @@ async function showSandboxOverview(sandboxId: string) {
   });
 }
 
-program
-  .command('show [sandbox-identifier]')
-  .description('Provides details about a sandbox.')
-  .action(async function (arg) {
-    try {
-      let sandboxIdToUse = null;
-      if (!arg) {
-        if (sandboxClientManager.hasCurrent()) {
-          sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
-        } else {
-          cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id.');
-        }
-      } else {
-        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
-      }
-      await showSandboxOverview(sandboxIdToUse);
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception when showing sandbox details: ' + e);
-    }
-  });
-
-program
-  .command('rules [sandbox-identifier]')
-  .description('Shows rule tree for sandbox.')
-  .action(async function (arg) {
-    try {
-      let sandboxIdToUse = null;
-      if (!arg) {
-        if (sandboxClientManager.hasCurrent()) {
-          sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
-        } else {
-          cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id.');
-        }
-      } else {
-        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
-      }
-      const rulesList = await getRulesForSandboxId(sandboxIdToUse);
-      rulesList.forEach(o => {
-        cliUtils.logWithBorder(o.title, 'err');
-        console.log(cliUtils.toJsonPretty(o.rules));
-      })
-    } catch (e) {
-      console.error(e);
-    }
-  });
-
 function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true) {
   const results = sandboxClientManager.searchLocalSandboxes(identifier);
   if (results.length == 0) {
@@ -299,33 +187,6 @@ function getSandboxIdFromIdentifier(sandboxIdentifier: string) {
   }
 }
 
-program
-  .command('use <sandbox-identifier>')
-  .description('Sets the identified sandbox as currently active.')
-  .action(function (arg) {
-    const sb = getLocalSandboxForIdentifier(arg);
-    sandboxClientManager.makeCurrent(sb.sandboxId);
-    console.log(`Sandbox: ${sb.name} is now active`)
-  });
-
-program
-  .command('delete <sandbox-id>')
-  .description('Deletes the sandbox.')
-  .action(async function (sandboxId) {
-    try {
-      if (!await cliUtils.confirm('Are you sure you want to delete this sandbox?')) {
-        return;
-      }
-
-      const progressMsg = `Deleting sandboxId: ${sandboxId}`;
-      await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
-
-      sandboxClientManager.flushLocalSandbox(sandboxId);
-    } catch (e) {
-      console.error(e);
-    }
-  });
-
 function parseToBoolean(str: string) {
   if (!str) {
     return false;
@@ -348,22 +209,6 @@ function parseToBoolean(str: string) {
   }
 }
 
-program
-  .command('update-property <sandbox-id> <sandbox-property-id>')
-  .description('Updates a sandbox-property.')
-  .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
-  .option('-H, --requesthostnames <string>', 'Comma-delimited list of request hostnames within the sandbox.')
-  .action(async function (sandboxId, sandboxPropertyId, options) {
-    const rules = options.rules;
-    const requestHostnames = options.requesthostnames;
-    try {
-      await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
-      console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception during property update: ' + e);
-    }
-  });
-
 async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxId, sandboxPropertyId) {
   if (requestHostnames) {
     const property = await cliUtils.spinner(sandboxSvc.getProperty(sandboxId, sandboxPropertyId), `Loading sandboxPropertyId: ${sandboxPropertyId}`);
@@ -375,46 +220,6 @@ async function updateHostnamesAndRules(requestHostnames, rulesFilePath, sandboxI
     await cliUtils.spinner(sandboxSvc.updateRules(sandboxId, sandboxPropertyId, rules), 'Updating rules.');
   }
 }
-
-program
-  .command('update [sandbox-identifier]')
-  .description('Updates a sandbox.')
-  .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
-  .option('-c, --clonable <boolean>', 'Make this sandbox clonable? (Y/N)')
-  .option('-n, --name <string>', 'Name of sandbox.')
-  .option('-H, --requesthostnames <string>', 'Comma-delimited list of request hostnames within the sandbox.')
-  .option('--recipe <path>', 'Path to `recipe.json` file.')
-  .action(async function (arg, options) {
-    helpExitOnNoArgs(options);
-    try {
-      const clonable = parseToBoolean(options.clonable);
-      const sandboxId = getSandboxIdFromIdentifier(orCurrent(arg));
-      const recipeFilePath = options.recipe;
-      if (recipeFilePath) {
-        await updateFromRecipe(sandboxId, recipeFilePath, options.name, clonable);
-        return;
-      }
-      const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId), `loading sandboxId: ${sandboxId}`);
-      if (options.clonable) {
-        sandbox.isClonable = clonable;
-      }
-      if (isNonEmptyString(options.name)) {
-        sandbox.name = options.name;
-      }
-
-      await cliUtils.spinner(sandboxSvc.updateSandbox(sandbox), `updating sandbox_id: ${sandbox.sandboxId}`);
-
-      const propertyChange: boolean = !!options.requesthostnames || !!options.rules;
-      if (propertyChange && sandbox.properties.length > 1) {
-        cliUtils.logAndExit(1, `ERROR: Unable to update property as multiple were found (${sandbox.properties.length}). Use update-property to add additional properties to the sandbox.`);
-      }
-      const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
-      await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
-      console.log(`Successfully updated sandbox_id: ${sandboxId}`)
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception during sandbox update: ' + e);
-    }
-  });
 
 function getJsonFromFile(papiFilePath) {
   try {
@@ -430,25 +235,6 @@ function parseHostnameCsv(csv) {
     .map(hn => hn.trim().toLowerCase())
     .filter(hn => hn.length > 0);
 }
-
-program
-  .command('clone <sandbox-identifier>')
-  .description('Creates a replica of a given sandbox.')
-  .option('-n, --name <string>', 'Name of sandbox.')
-  .action(async function (arg, options) {
-    try {
-      const sandboxId = getSandboxIdFromIdentifier(arg);
-      if (!isNonEmptyString(options.name)) {
-        cliUtils.logAndExit(1, 'ERROR: Parameter --name is required.');
-      }
-      const name = options.name;
-      const cloneResponse = await cliUtils.spinner(sandboxSvc.cloneSandbox(sandboxId, name));
-
-      await registerSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name);
-    } catch (e) {
-      cliUtils.logAndExit(1, 'ERROR: got exception during sandbox cloning: ' + e);
-    }
-  });
 
 async function addPropertyFromRules(sandboxId: string, papiFilePath: string, hostnames: Array<string>) {
   if (!fs.existsSync(papiFilePath)) {
@@ -587,7 +373,9 @@ function validateAndBuildRecipe(recipeFilePath, name, clonable): any {
   if (typeof name !== 'string') {
     name = null;
   }
+
   console.log('Validating recipe file.');
+
   if (!fs.existsSync(recipeFilePath)) {
     cliUtils.logAndExit(1, `ERROR: File ${recipeFilePath} does not exist.`);
   }
@@ -672,8 +460,7 @@ async function updateFromRecipe(sandboxId, recipeFilePath, name, clonable) {
   await cliUtils.spinner(sandboxSvc.deleteProperty(sandboxId, first));
 }
 
-
-async function createFromRecipe(recipeFilePath, name, clonable, cpcode) {
+async function createFromRecipe(recipeFilePath, name, clonable, cpcode, originFrom) {
   const recipe = validateAndBuildRecipe(recipeFilePath, name, clonable);
 
   const sandboxRecipe = recipe.sandbox;
@@ -687,10 +474,15 @@ async function createFromRecipe(recipeFilePath, name, clonable, cpcode) {
     cliUtils.logAndExit(1, 'ERROR: could not find either sandbox.properties or sandbox.cloneFrom.');
   }
 
-  await registerSandbox(res.sandboxId,
+  const sandboxName = typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : res.sandboxId;
+
+  await registerSandbox(
+    res.sandboxId,
     res.jwtToken,
-    typeof sandboxRecipe.name === 'string' ? sandboxRecipe.name : res.sandboxId,
-    recipe.clientConfig);
+    sandboxName,
+    originFrom,
+    recipe.clientConfig
+  );
 }
 
 function createRecipeProperty(rp, sandboxId) {
@@ -737,6 +529,356 @@ function isNonEmptyString(obj) {
     && obj.trim().length > 0;
 }
 
+async function registerSandbox(sandboxId: string, jwt: string, name: string, originFrom: string, clientConfig = null) {
+  console.log('building origin list');
+  const origins: Array<string> = await getOriginListForSandboxId(sandboxId);
+  let passThrough = false;
+  let hasVariableForOrigin = false;
+
+  if (origins.length > 0) {
+    console.log(`Detected the following origins: ${origins.join(', ')}`);
+    const regexPMUserVariable = new RegExp("(\{\{(.)+\}\})");
+    hasVariableForOrigin = origins.some(origin => regexPMUserVariable.test(origin));
+    passThrough = await shouldPassThrough(originFrom);
+  }
+
+  console.log('registering sandbox in local datastore');
+  const registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
+
+  console.info(`Successfully created sandbox_id ${sandboxId} Generated sandbox client configuration at ${registration.configPath} Edit this file to specify the port and host for your dev environment.`);
+  if (hasVariableForOrigin) {
+    console.error(`\nAt least one property of this sandbox has a user defined variable for origin hostname.`)
+    console.error(`Edit the sandbox client configuration file ${registration.configPath} and replace the variable with a static hostname.`);
+  }
+}
+
+async function shouldPassThrough(originFrom: string) {
+  if (originFrom) {
+    if (originFrom === OriginMapping.FROM_CONFIG) {
+      return false;
+    } else if (originFrom === OriginMapping.FROM_PROPERTY) {
+      return true;
+    }
+  } else {
+    if (await cliUtils.confirm('Do you want the Sandbox Client to proxy the origins in your dev environment to the destination defined in the Akamai config? Enter **y** and the CLI will automatically update your configuration file. If you want to route sandbox traffic to different development origins, enter **n** to customize the origin mappings.')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function downloadClientIfNecessary() {
+  try {
+    if (!sandboxClientManager.isAlreadyInstalled()) {
+      console.log('no sandbox client installed. Installing sandbox client...');
+      await sandboxClientManager.downloadClient();
+    }
+  } catch (e) {
+    cliUtils.logAndExit(1, 'ERROR: got exception during client download: ' + e);
+  }
+}
+
+function addPropertyToSandbox(sandboxId, property, rulesPath, hostname, requestHostnames) {
+  if (property) {
+    return addPropertyToSandboxFromProperty(sandboxId, requestHostnames, property);
+  } else if (rulesPath) {
+    return addPropertyFromRules(sandboxId, rulesPath, requestHostnames);
+  } else if (hostname) {
+    return addPropertyToSandboxFromHostname(sandboxId, requestHostnames, hostname);
+  } else {
+    cliUtils.logAndExit(1, `ERROR: Critical error while adding property to the sandbox : ${sandboxId} You need to define the rulesPath or property.`);
+  }
+}
+
+async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action) {
+  action = (action == 'add') ? 'adding' : 'updating';
+  const msg = `${action} edgeworker ${edgeworkerId} for: ${sandboxId} from ${edgeworkerTarballPath}`;
+  return await cliUtils.spinner(sandboxSvc.pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath), msg);
+}
+
+async function addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, action) {
+  try {
+    let sandboxId = sandboxClientManager.getCurrentSandboxId();
+    if (!sandboxId) {
+      cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id');
+    }
+
+    if (!fs.existsSync(edgeworkerTarballPath)) {
+      cliUtils.logAndExit(1, `ERROR: Provided edgeworker tarball path ${edgeworkerTarballPath} not found.`);
+    }
+    let buffer = fs.readFileSync(edgeworkerTarballPath);
+    let hex = buffer.toString('hex');
+    await pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action);
+    console.log('done!');
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+async function pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
+  const msg = `downloading edgeworker ${edgeworkerId} for: ${sandboxId}`;
+  return await cliUtils.spinner(sandboxSvc.pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
+}
+
+async function makeFileForEdgeworker(edgeworkerId, hexFile) {
+  let edgeworkerFolder = path.join(process.env.AKAMAI_CLI_CACHE_PATH,
+    `sandbox-cli/sandboxes`,
+    sandboxClientManager.getCurrentSandboxName(),
+    'edgeworkers/');
+  if (!fs.existsSync(edgeworkerFolder)) {
+    fs.mkdirSync(edgeworkerFolder);
+  }
+  let filename = `${edgeworkerId}_${new Date().getTime()}.tgz`;
+  fs.writeFileSync(`${edgeworkerFolder}/${filename}`, Buffer.from(hexFile, "hex"));
+  console.log(`Downloaded edgeworker file :${filename} for edgeworker id : ${edgeworkerId} at location : ${edgeworkerFolder}`);
+}
+
+async function deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
+  const msg = `deleting edgeworker ${edgeworkerId} for: ${sandboxId}`;
+  return await cliUtils.spinner(sandboxSvc.deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
+}
+
+function validateArgument(optionName, optionValue, allowedValues: String[]) {
+  if (optionValue) {
+    if (allowedValues.indexOf(optionValue) < 0) {
+      cliUtils.logAndExit(1,
+        `ERROR: Invalid option argument for ${optionName}: '${optionValue}'. Valid values are: ${allowedValues.join(', ')}`);
+    }
+  }
+}
+
+function helpExitOnNoArgs(cmd) {
+  const len = process.argv.slice(2).length;
+  if (!len || len <= 1) {
+    cmd.outputHelp();
+    process.exit();
+  }
+}
+
+const program = require('commander');
+
+program
+  .version(pkginfo.version)
+  .description(pkginfo.description)
+  .option('--debug', 'Show debug information.')
+  .option('--edgerc <path>', 'Use edgerc file for authentication.')
+  .option('--section <name>', 'Use this section in edgerc file that contains the credential set.')
+  .option('--accountkey <account-id>', 'internal parameter')
+  .on("option:edgerc", function (edgeRcFilePath) {
+    envUtils.setEdgeRcFilePath(edgeRcFilePath);
+  })
+  .on("option:section", function (section) {
+    envUtils.setEdgeRcSection(section);
+  })
+  .on("option:accountkey", function (key) {
+    sandboxSvc.setAccountKey(key);
+  })
+  .on("option:debug", function () {
+    envUtils.setDebugMode(true);
+  });
+
+program
+  .command('help [command]')
+  .description('Displays help information for the given command.')
+  .action(function (arg) {
+    if (!arg) {
+      program.outputHelp();
+    } else {
+      const command = program.commands.find(c => c._name == arg);
+      if (!command) {
+        console.log(`Could not find a command for ${arg}`);
+      } else {
+        command.outputHelp();
+      }
+    }
+  });
+
+program
+  .command('install')
+  .description('Downloads and installs the Sandbox Client software.')
+  .action(async function () {
+    try {
+      if (sandboxClientManager.isAlreadyInstalled()) {
+        console.log("Sandbox Client is already installed.");
+      } else {
+        await downloadClientIfNecessary();
+      }
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception during client install: ' + e);
+    }
+  });
+
+program
+  .command('list')
+  .alias('ls')
+  .description('Lists sandboxes that you have managed locally.')
+  .option('-r, --remote', 'Show sandboxes from the server.')
+  .action(async function (options) {
+    try {
+      if (options.remote) {
+        await showRemoteSandboxes();
+      } else {
+        showLocalSandboxes();
+      }
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception when listing sandboxes: ' + e);
+    }
+  });
+
+program
+  .command('show [sandbox-identifier]')
+  .description('Provides details about a sandbox.')
+  .action(async function (arg) {
+    try {
+      let sandboxIdToUse = null;
+      if (!arg) {
+        if (sandboxClientManager.hasCurrent()) {
+          sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
+        } else {
+          cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id.');
+        }
+      } else {
+        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
+      }
+      await showSandboxOverview(sandboxIdToUse);
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception when showing sandbox details: ' + e);
+    }
+  });
+
+program
+  .command('rules [sandbox-identifier]')
+  .description('Shows rule tree for sandbox.')
+  .action(async function (arg) {
+    try {
+      let sandboxIdToUse = null;
+      if (!arg) {
+        if (sandboxClientManager.hasCurrent()) {
+          sandboxIdToUse = sandboxClientManager.getCurrentSandboxId();
+        } else {
+          cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id.');
+        }
+      } else {
+        sandboxIdToUse = getSandboxIdFromIdentifier(arg);
+      }
+      const rulesList = await getRulesForSandboxId(sandboxIdToUse);
+      rulesList.forEach(o => {
+        cliUtils.logWithBorder(o.title, 'err');
+        console.log(cliUtils.toJsonPretty(o.rules));
+      })
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+program
+  .command('use <sandbox-identifier>')
+  .description('Sets the identified sandbox as currently active.')
+  .action(function (arg) {
+    const sb = getLocalSandboxForIdentifier(arg);
+    sandboxClientManager.makeCurrent(sb.sandboxId);
+    console.log(`Sandbox: ${sb.name} is now active`)
+  });
+
+program
+  .command('delete <sandbox-id>')
+  .description('Deletes the sandbox.')
+  .option('-f, --force', 'Attempt to remove the sandbox without prompting for confirmation.')
+  .action(async function (sandboxId, options) {
+    const forceDelete = !!options.force;
+    try {
+      if (!forceDelete) {
+        if (!await cliUtils.confirm('Are you sure you want to delete this sandbox?')) {
+          return;
+        }
+      }
+
+      const progressMsg = `Deleting sandboxId: ${sandboxId}`;
+      await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
+
+      sandboxClientManager.flushLocalSandbox(sandboxId);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+
+program
+  .command('update-property <sandbox-id> <sandbox-property-id>')
+  .description('Updates a sandbox-property.')
+  .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
+  .option('-H, --requesthostnames <string>', 'Comma-delimited list of request hostnames within the sandbox.')
+  .action(async function (sandboxId, sandboxPropertyId, options) {
+    const rules = options.rules;
+    const requestHostnames = options.requesthostnames;
+    try {
+      await updateHostnamesAndRules(requestHostnames, rules, sandboxId, sandboxPropertyId);
+      console.log(`Successfully updated sandbox_id: ${sandboxId} sandbox_property_id: ${sandboxPropertyId}`);
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception during property update: ' + e);
+    }
+  });
+
+program
+  .command('update [sandbox-identifier]')
+  .description('Updates a sandbox.')
+  .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
+  .option('-c, --clonable <boolean>', 'Make this sandbox clonable? (Y/N)')
+  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('-H, --requesthostnames <string>', 'Comma-delimited list of request hostnames within the sandbox.')
+  .option('--recipe <path>', 'Path to `recipe.json` file.')
+  .action(async function (arg, options) {
+    helpExitOnNoArgs(options);
+    try {
+      const clonable = parseToBoolean(options.clonable);
+      const sandboxId = getSandboxIdFromIdentifier(orCurrent(arg));
+      const recipeFilePath = options.recipe;
+      if (recipeFilePath) {
+        await updateFromRecipe(sandboxId, recipeFilePath, options.name, clonable);
+        return;
+      }
+      const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId), `loading sandboxId: ${sandboxId}`);
+      if (options.clonable) {
+        sandbox.isClonable = clonable;
+      }
+      if (isNonEmptyString(options.name)) {
+        sandbox.name = options.name;
+      }
+
+      await cliUtils.spinner(sandboxSvc.updateSandbox(sandbox), `updating sandbox_id: ${sandbox.sandboxId}`);
+
+      const propertyChange: boolean = !!options.requesthostnames || !!options.rules;
+      if (propertyChange && sandbox.properties.length > 1) {
+        cliUtils.logAndExit(1, `ERROR: Unable to update property as multiple were found (${sandbox.properties.length}). Use update-property to add additional properties to the sandbox.`);
+      }
+      const sandboxPropertyId = sandbox.properties[0].sandboxPropertyId;
+      await updateHostnamesAndRules(options.requesthostnames, options.rules, sandboxId, sandboxPropertyId);
+      console.log(`Successfully updated sandbox_id: ${sandboxId}`)
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception during sandbox update: ' + e);
+    }
+  });
+
+program
+  .command('clone <sandbox-identifier>')
+  .description('Creates a replica of a given sandbox.')
+  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
+  .action(async function (arg, options) {
+    validateArgument("--origin-from", options.originFrom, [OriginMapping.FROM_CONFIG, OriginMapping.FROM_PROPERTY]);
+    try {
+      const sandboxId = getSandboxIdFromIdentifier(arg);
+      if (!isNonEmptyString(options.name)) {
+        cliUtils.logAndExit(1, 'ERROR: Parameter --name is required.');
+      }
+      const name = options.name;
+      const cloneResponse = await cliUtils.spinner(sandboxSvc.cloneSandbox(sandboxId, name));
+
+      await registerSandbox(cloneResponse.sandboxId, cloneResponse.jwtToken, name, options.originFrom);
+    } catch (e) {
+      cliUtils.logAndExit(1, 'ERROR: got exception during sandbox cloning: ' + e);
+    }
+  });
+
 program
   .command('create')
   .description('Creates a new sandbox')
@@ -748,13 +890,16 @@ program
   .option('-H, --requesthostnames <string>', 'Comma separated list of request hostnames.')
   .option('--recipe <path>', 'Path to recipe.json file.')
   .option('-C, --cpcode <cpcode>', 'Specify an existing cpcode instead of letting the system generate a new one.')
+  .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function (options) {
     helpExitOnNoArgs(options);
-    const cpcode = options.cpcode;
+    validateArgument("--origin-from", options.originFrom, [OriginMapping.FROM_CONFIG, OriginMapping.FROM_PROPERTY]);
+
+    const cpCode = options.cpcode;
     try {
       const recipePath = options.recipe;
       if (recipePath) {
-        await createFromRecipe(recipePath, options.name, options.clonable, cpcode);
+        await createFromRecipe(recipePath, options.name, options.clonable, cpCode, options.originFrom);
         return;
       }
 
@@ -794,54 +939,19 @@ program
 
       let r = null;
       if (papiFilePath) {
-        r = await createFromRules(papiFilePath, propForRules, hostnames, isClonable, name, cpcode);
+        r = await createFromRules(papiFilePath, propForRules, hostnames, isClonable, name, cpCode);
       } else if (propertySpecifier) {
-        r = await createFromProperty(propertySpecifier, hostnames, isClonable, name, cpcode);
+        r = await createFromProperty(propertySpecifier, hostnames, isClonable, name, cpCode);
       } else if (hostnameSpecifier) {
-        r = await createFromHostname(hostnameSpecifier, hostnames, isClonable, name, cpcode);
+        r = await createFromHostname(hostnameSpecifier, hostnames, isClonable, name, cpCode);
       }
 
-      await registerSandbox(r.sandboxId, r.jwtToken, name);
+      await registerSandbox(r.sandboxId, r.jwtToken, name, options.originFrom);
 
     } catch (e) {
       cliUtils.logAndExit(1, 'ERROR: got exception during sandbox creation: ' + e);
     }
   });
-
-async function registerSandbox(sandboxId: string, jwt: string, name: string, clientConfig = null) {
-  console.log('building origin list');
-  const origins: Array<string> = await getOriginListForSandboxId(sandboxId);
-  let passThrough = false;
-  let hasVariableForOrigin = false;
-  if (origins.length > 0) {
-    console.log(`Detected the following origins: ${origins.join(', ')}`);
-    const regexPMUserVariable = new RegExp("(\{\{(.)+\}\})");
-    hasVariableForOrigin = origins.some(origin => regexPMUserVariable.test(origin));
-    if (await cliUtils.confirm('Do you want the Sandbox Client to proxy the origins in your dev environment to the destination defined in the Akamai config? Enter **y** and the CLI will automatically update your configuration file. If you want to route sandbox traffic to different development origins, enter **n** to customize the origin mappings.')) {
-      passThrough = true;
-    }
-  }
-
-  console.log('registering sandbox in local datastore');
-  const registration = sandboxClientManager.registerNewSandbox(sandboxId, jwt, name, origins, clientConfig, passThrough);
-
-  console.info(`Successfully created sandbox_id ${sandboxId} Generated sandbox client configuration at ${registration.configPath} Edit this file to specify the port and host for your dev environment.`);
-  if (hasVariableForOrigin) {
-    console.error(`\nAt least one property of this sandbox has a user defined variable for origin hostname.`)
-    console.error(`Edit the sandbox client configuration file ${registration.configPath} and replace the variable with a static hostname.`);
-  }
-}
-
-async function downloadClientIfNecessary() {
-  try {
-    if (!sandboxClientManager.isAlreadyInstalled()) {
-      console.log('no sandbox client installed. Installing sandbox client...');
-      await sandboxClientManager.downloadClient();
-    }
-  } catch (e) {
-    cliUtils.logAndExit(1, 'ERROR: got exception during client download: ' + e);
-  }
-}
 
 program
   .command('start')
@@ -860,19 +970,6 @@ program
     }
   });
 
-function addPropertyToSandbox(sandboxId, property, rulesPath, hostname, requestHostnames) {
-  if (property) {
-    return addPropertyToSandboxFromProperty(sandboxId, requestHostnames, property);
-  } else if (rulesPath) {
-    return addPropertyFromRules(sandboxId, rulesPath, requestHostnames);
-  } else if (hostname) {
-    return addPropertyToSandboxFromHostname(sandboxId, requestHostnames, hostname);
-  } else {
-    cliUtils.logAndExit(1, `ERROR: Critical error while adding property to the sandbox : ${sandboxId} You need to define the rulesPath or property.`);
-  }
-}
-
-// add-property to sandbox command definitions
 program
   .command('add-property [sandbox-identifier]')
   .description('Add a property to a sandbox')
@@ -913,13 +1010,15 @@ program
     }
   });
 
-// sync sandbox from remote using jwt
 program
   .command('sync-sandbox <jwtToken>')
   .description('Sync down a remote sandbox to the local system')
   .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
+  .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function (jwt, options) {
     helpExitOnNoArgs(options);
+    validateArgument("--origin-from", options.originFrom, [OriginMapping.FROM_CONFIG, OriginMapping.FROM_PROPERTY]);
+
     sandboxSvc.setAccountWide(true);
     try {
       let sandboxName;
@@ -949,7 +1048,7 @@ program
 
       const hasSandboxName = await sandboxClientManager.hasSandboxFolder(sandboxName);
       if (!hasSandboxName) {
-        await registerSandbox(sandboxId, jwt, sandboxName);
+        await registerSandbox(sandboxId, jwt, sandboxName, options.originFrom);
       } else {
         console.error(`Error: Sandbox folder name ${sandboxName} already exists locally. Please provide a different sandbox name for this local sandbox folder using option -n or --name.`)
       }
@@ -960,13 +1059,6 @@ program
     sandboxSvc.setAccountWide(false);
 
   });
-
-
-async function pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action) {
-  action = (action == 'add') ? 'adding' : 'updating';
-  const msg = `${action} edgeworker ${edgeworkerId} for: ${sandboxId} from ${edgeworkerTarballPath}`;
-  return await cliUtils.spinner(sandboxSvc.pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath), msg);
-}
 
 program
   .command('add-edgeworker <edgeworker-id> <edgeworker-tarball>')
@@ -984,54 +1076,12 @@ program
     addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'update');
   });
 
-async function addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, action) {
-  try {
-
-    let sandboxId = sandboxClientManager.getCurrentSandboxId();
-    if (!sandboxId) {
-      cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id');
-    }
-
-    if (!fs.existsSync(edgeworkerTarballPath)) {
-      cliUtils.logAndExit(1, `ERROR: Provided edgeworker tarball path ${edgeworkerTarballPath} not found.`);
-    }
-    let buffer = fs.readFileSync(edgeworkerTarballPath);
-    let hex = buffer.toString('hex');
-    await pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action);
-    console.log('done!');
-
-  } catch (e) {
-    console.error(e);
-  }
-}
-
-async function pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
-  const msg = `downloading edgeworker ${edgeworkerId} for: ${sandboxId}`;
-  return await cliUtils.spinner(sandboxSvc.pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
-}
-
-async function makeFileForEdgeworker(edgeworkerId, hexFile) {
-
-  let edgeworkerFolder = path.join(process.env.AKAMAI_CLI_CACHE_PATH,
-    `sandbox-cli/sandboxes`,
-    sandboxClientManager.getCurrentSandboxName(),
-    'edgeworkers/');
-  if (!fs.existsSync(edgeworkerFolder)) {
-    fs.mkdirSync(edgeworkerFolder);
-  }
-  let filename = `${edgeworkerId}_${new Date().getTime()}.tgz`;
-  fs.writeFileSync(`${edgeworkerFolder}/${filename}`, Buffer.from(hexFile, "hex"));
-  console.log(`Downloaded edgeworker file :${filename} for edgeworker id : ${edgeworkerId} at location : ${edgeworkerFolder}`);
-}
-
 program
   .command('download-edgeworker <edgeworker-id>')
   .description('Download edgeworker for the currently active sandbox')
   .action(async function (edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
-
-
       let sandboxId = sandboxClientManager.getCurrentSandboxId();
       if (!sandboxId) {
         cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id');
@@ -1045,23 +1095,21 @@ program
     }
   });
 
-
-async function deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
-  const msg = `deleting edgeworker ${edgeworkerId} for: ${sandboxId}`;
-  return await cliUtils.spinner(sandboxSvc.deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId), msg);
-}
-
 program
   .command('delete-edgeworker <edgeworker-id>')
   .description('Delete edgeworker for the currently active sandbox')
+  .option('-f, --force', 'Attempt to remove the edgeworker without prompting for confirmation.')
   .action(async function (edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
+      const forceDelete = !!options.force;
+      const sandboxId = sandboxClientManager.getCurrentSandboxId();
 
-      let sandboxId = sandboxClientManager.getCurrentSandboxId();
-      if (!await cliUtils.confirm(
-        `Are you sure you want to delete the edgeworker with id: ${edgeworkerId} for the currently active sandbox : ${sandboxId} `)) {
-        return;
+      if (!forceDelete) {
+        if (!await cliUtils.confirm(
+          `Are you sure you want to delete the edgeworker with id: ${edgeworkerId} for the currently active sandbox : ${sandboxId} `)) {
+          return;
+        }
       }
       if (!sandboxId) {
         cliUtils.logAndExit(1, 'ERROR: Unable to determine sandbox_id');
@@ -1073,14 +1121,6 @@ program
       console.error(e);
     }
   });
-
-function helpExitOnNoArgs(cmd) {
-  const len = process.argv.slice(2).length;
-  if (!len || len <= 1) {
-    cmd.outputHelp();
-    process.exit();
-  }
-}
 
 if (!process.argv.slice(2).length) {
   program.outputHelp();

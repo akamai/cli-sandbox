@@ -1,11 +1,11 @@
-var EdgeGrid = require('edgegrid');
+const EdgeGrid = require('edgegrid');
 const untildify = require('untildify');
-var path = require('path');
+const path = require('path');
 const fs = require('fs');
 import * as os from 'os';
 import * as cliUtils from './cli-utils';
 
-var findJavaHome = require('find-java-home');
+const findJavaHome = require('find-java-home');
 
 const edgeRcParams = {
   section: process.env.AKAMAI_EDGERC_SECTION || 'default',
@@ -64,7 +64,7 @@ export function getJavaHome() {
 }
 
 export async function getJavaExecutablePath() {
-  var home = await getJavaHome();
+  const home = await getJavaHome();
   return path.join(home, '/bin/java');
 }
 
@@ -72,13 +72,13 @@ export async function getJavaVersion() {
   const javaFullPath = await getJavaExecutablePath();
   return new Promise(
     (resolve, reject) => {
-      var spawn = require('child_process').spawn(javaFullPath, ['-version']);
+      const spawn = require('child_process').spawn(javaFullPath, ['-version']);
       spawn.on('error', function (err) {
         reject(err);
       });
       spawn.stderr.on('data', function (data) {
         data = data.toString().split('\n')[0];
-        var javaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+        const javaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
         if (javaVersion != false) {
           // TODO: We have Java installed
           resolve(javaVersion);

@@ -54,6 +54,8 @@ You will see this message confirming that you are connected to the sandbox:
 
 `INFO  c.a.devpops.connector.ConnectorMain - Successfully launched Akamai Sandbox Client`
 
+You may also add a `--print-logs` parameter to display logs directly on standard output. 
+
 ### Step 4: Test the Sandbox
 You have two options to test the Sandbox.
 
@@ -123,6 +125,7 @@ Options:
 | -n, --name `<string>` | Name of sandbox. |
 | -H, --requesthostnames `<string>` | Comma-delimited list of request hostnames within the sandbox. |
 | --recipe `<path>` | Path to JSON file that includes customizable sandbox templates. |
+| --origin-from `<config | property>` | Indicates whether origin traffic will be redirected to the origins defined in your Akamai property or config file. |
 | -h, --help | Display usage information. |
 
 ### Update Command
