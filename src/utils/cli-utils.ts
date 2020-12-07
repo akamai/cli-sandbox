@@ -56,20 +56,3 @@ export async function spinner(func, userMsg: string = '') {
 export function toJsonPretty(obj) {
   return JSON.stringify(obj, undefined, 2);
 }
-
-export async function progress(func, userMsg: string = '') {
-  console.log(userMsg);
-  let written: number = 0;
-  const interval = setInterval(function () {
-    process.stdout.write(".");
-    written++;
-  }, 1000);
-  try {
-    return await func;
-  } finally {
-    clearInterval(interval);
-    if (written > 0) {
-      process.stdout.write("\n");
-    }
-  }
-}

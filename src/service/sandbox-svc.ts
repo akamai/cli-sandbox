@@ -15,9 +15,6 @@ export function setAccountWide(value: boolean) {
   accountWide = value;
 }
 
-export function getAccountWide() {
-  return accountWide;
-}
 
 function isOkStatus(code) {
   return code >= 200 && code < 300;
@@ -64,9 +61,11 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
         } else {
           try {
             const errorObj = JSON.parse(body);
+            errorObj.path = path
+            errorObj.method = method
             reject(cliUtils.toJsonPretty(errorObj));
           } catch (ex) {
-            console.error(`got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
+            console.error(`ERROR: got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
             reject(body);
           }
         }
