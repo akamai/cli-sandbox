@@ -65,7 +65,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
             errorObj.method = method
             reject(cliUtils.toJsonPretty(errorObj));
           } catch (ex) {
-            console.error(`ERROR: got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
+            cliUtils.logError(`got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
             reject(body);
           }
         }

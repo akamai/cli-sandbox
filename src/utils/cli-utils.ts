@@ -23,9 +23,13 @@ export function logAndExit(exitCode: number, msg: string) {
   if (exitCode === 0) {
     console.log(msg);
   } else {
-    console.error(msg);
+    logError(msg);
   }
   process.exit(exitCode);
+}
+
+export function logError(msg: string) {
+  console.error("ERROR: " + msg);
 }
 
 export async function confirm(msg: string) {
