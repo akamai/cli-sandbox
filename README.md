@@ -32,18 +32,19 @@ There are a variety of ways to create a sandbox. These code samples show a few c
 
 `akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`   
 
-When creating the sandbox based on a property, the CLI automatically scans the Property Manager configuration, detects all the origins defined in the file, and asks you to confirm if you want sandbox requests to go directly to these origins. This is an example of how the auto scan works:
+When creating the sandbox based on a property, the CLI automatically scans the Property Manager configuration, detects all the origins defined in the file and either use the origins from property (`--origin-from property`) or from config file (`--origin-from config`).
+Alternatively if you don't provide `--origin-from` command it will ask you to confirm if you want sandbox requests to go directly to origins from property or from config file. This is an example of how the auto scan works:
 
 ```
-my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com
+my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com --origin-from config
 building origin list 
 Detected the following origins: origin-www.example.com  
-? Do you want the Sandbox Client to proxy the origins in your dev environment to the destination defined in the Akamai config? Enter **y** and the CLI will automatically update your configuration file. If you want to route sandbox traffic to different development origins, enter **n** to customize the origin mappings.
 registering sandbox in local datastore
 sandbox_id: 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52 sandbox_for_example.com is now active  
 Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json Edit this file to specify the port and host for your dev environment. 
 my_laptop:~ username$
 ``` 
+
 
 ### Step 3: Connect to your sandbox
 Run this command to connect securely to the sandbox you just created:
@@ -74,6 +75,10 @@ ___
 
 ## Overview of Commands
 Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://developer.akamai.com/api/core_features/sandbox/v1.html).
+
+All commands have a buil-in help available using `help command`.
+
+Below is a description of the most commonly used commands.
 
 > **NOTE**: `sandbox-identifier` is a string that uniquely identifies a sandbox (matches on `name` or `sandboxID`). If you do not specify a `sandbox-identifier`, the CLI uses the currently active sandbox.
 
