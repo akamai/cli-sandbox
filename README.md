@@ -78,76 +78,235 @@ Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https:/
 
 All commands have a built-in help available using `help command`.
 
-Below is a description of the most commonly used commands.
-
 > **NOTE**: `sandbox-identifier` is a string that uniquely identifies a sandbox (matches on `name` or `sandboxID`). If you do not specify a `sandbox-identifier`, the CLI uses the currently active sandbox.
 
 optional args `[]`
 required args `<>`
 
-Usage:  `[options] [command]`
+```
+Usage:  [options] [command]
+
+A tool that makes it easier to manage Akamai Sandboxes. Call the Sandbox API from the command line.
 
 Options:
- 
-| Syntax | Description |
-| - | - |
-| -V, --version | Display the version number for the Sandbox CLI program. |
-| --debug | Show debug information. |
-| --edgerc `<path>` | Use credentials in `edgerc` file for command. (Default file location is _~/.edgerc_) |
-| --section `<name>` | Use this section in `edgerc` file. (Default section is _[default]_|
-| -h, --help | Display usage information for Sandbox CLI. |
- 
-Commands:
+  -V, --version                                                 Output the current version.
+  --debug                                                       Show debug information.
+  --edgerc <path>                                               Use edgerc file for authentication.
+  --section <name>                                              Use this section in edgerc file that contains the credential set.
+  --accountkey <account-id>                                     Use given internal parameter.
+  -h, --help                                                    Output usage information.
 
-| Command | Description |
-| - | - |
-| help [command] | Display usage information for the given command. |
-| install | Download and install the sandbox client software. |
-| list, ls [options] | List sandboxes that are available locally. |
-| show [sandbox-identifier] | Show details about a sandbox. |
-| rules [sandbox-identifier] | Show rule tree for the property within the sandbox. |
-| use `<sandbox-identifier>` | Set the identified sandbox as active. |
-| delete `<sandbox-identifier>` | Delete the specified sandbox. |
-| update-property [options] `<sandbox-id> <sandbox-property-id>` | Update the sandbox property. |
-| update [options] [sandbox-identifier] | Update the sandbox. |
-| clone [options] `<sandbox-identifier>` | Clone the specified sandbox. |
-| create [options] | Create a new sandbox. |
-| start | Start the sandbox client. |
+Commands:
+  help [command]                                                Displays help information for the given command.
+  install                                                       Downloads and installs the Sandbox Client software.
+  list|ls [options]                                             Lists sandboxes that you have managed locally.
+  show [sandbox-identifier]                                     Provides details about a sandbox.
+  rules [sandbox-identifier]                                    Shows rule tree for sandbox.
+  use <sandbox-identifier>                                      Sets the identified sandbox as currently active.
+  delete [options] <sandbox-id>                                 Deletes the sandbox.
+  update-property [options] <sandbox-id> <sandbox-property-id>  Updates a sandbox-property.
+  update [options] [sandbox-identifier]                         Updates a sandbox.
+  clone [options] <sandbox-identifier>                          Creates a replica of a given sandbox.
+  create [options]                                              Creates a new sandbox
+  start [options]                                               Starts the sandbox client.
+  add-property [options] [sandbox-identifier]                   Add a property to a sandbox
+  sync-sandbox [options] <jwtToken>                             Sync down a remote sandbox to the local system
+  add-edgeworker <edgeworker-id> <edgeworker-tarball>           Add edgeworker to the currently active sandbox. The edgeworker-id must be an
+                                                                unsigned integer.
+  update-edgeworker <edgeworker-id> <edgeworker-tarball>        Update edgeworker to the currently active sandbox
+  download-edgeworker <edgeworker-id>                           Download edgeworker for the currently active sandbox
+  delete-edgeworker [options] <edgeworker-id>                   Delete edgeworker for the currently active sandbox
+
+```
 
 ### Create Command
-Use this command to create a new sandbox.
+```
+Usage: akamai-sandbox create [options]
 
-Usage: `create [options]`
+Creates a new sandbox
 
 Options:
-
-| Syntax | Description |
-| - | - |
-| -r, --rules `<file>` | Rule tree associated with the Akamai property. |
-| -p, --property `<property_id property_name : version>` | Property to include in the sandbox. If version number is not specified, sandbox will use the current production version. |
-| -o, --hostname `<hostname>` | The hostname of your Akamai property (e.g. www.example.com). |
-| -c, --clonable `<boolean>` | Indicates whether sandbox can be replicated by other developers. |
-| -n, --name `<string>` | Name of sandbox. |
-| -H, --requesthostnames `<string>` | Comma-delimited list of request hostnames within the sandbox. |
-| --recipe `<path>` | Path to JSON file that includes customizable sandbox templates. |
-| --origin-from `<config | property>` | Indicates whether origin traffic will be redirected to the origins defined in your Akamai property or config file. |
-| -h, --help | Display usage information. |
+  -r, --rules <file>                                      JSON file containing a PAPI rule tree. You need to specify a property or hostname to
+                                                          base the sandbox on when using this method.
+  -p, --property <property_id | property_name : version>  Property to base the sandbox on. If an active version is not found, the most recent
+                                                          version is used.
+  -o, --hostname <hostname>                               The hostname of your Akamai property, such as www.example.com.
+  -c, --clonable <boolean>                                Make this sandbox clonable.
+  -n, --name <string>                                     Name of the sandbox.
+  -H, --requesthostnames <string>                         Comma separated list of request hostnames.
+  --recipe <path>                                         Path to recipe.json file.
+  -C, --cpcode <cpcode>                                   Specify an existing cpcode instead of letting the system generate a new one.
+  --origin-from <property | config>                       Redirect origin traffic to the origins defined in your Akamai property or config file.
+  -h, --help                                              Output usage information.
+```
 
 ### Update Command
-Use this command to update your sandbox.
+```
+Usage: akamai-sandbox update [options] [sandbox-identifier]
 
-Usage: `update [options] [sandbox-identifier]`
- 
+Updates a sandbox.
+
 Options:
+  -r, --rules <file>               JSON file containing a PAPI rule tree.
+  -c, --clonable <boolean>         Make this sandbox clonable? (Y/N)
+  -n, --name <string>              Name of sandbox.
+  -H, --requesthostnames <string>  Comma-delimited list of request hostnames within the sandbox.
+  --recipe <path>                  Path to `recipe.json` file.
+  -h, --help                       Output usage information.
 
-| Syntax | Description |
-| - | - |
-| -r, --rules `<file>` | Rule tree associated with the Akamai property. |
-| -c, --clonable `<boolean>` | Indicates whether sandbox can be replicated by other developers. |
-| -n, --name `<string>` | Name of sandbox. |
-| -H, --requesthostnames `<string>` | Comma-delimited list of request hostnames within the sandbox. |
-| --recipe `<path>` | Path to JSON file that includes customizable sandbox templates. |
-| -h, --help | Display usage information. |
+```
+
+### Install Command
+```
+Usage: akamai-sandbox install [options]
+
+Downloads and installs the Sandbox Client software.
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### List Command
+```
+Usage: akamai-sandbox list|ls [options]
+
+Lists sandboxes that you have managed locally.
+
+Options:
+  -r, --remote  Show sandboxes from the server.
+  -h, --help    Output usage information.
+```
+
+### Show Command
+```
+Usage: akamai-sandbox show [options] [sandbox-identifier]
+
+Provides details about a sandbox.
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### Rules Command
+```
+Usage: akamai-sandbox rules [options] [sandbox-identifier]
+
+Shows rule tree for sandbox.
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### Use Command
+```
+Usage: akamai-sandbox use [options] <sandbox-identifier>
+
+Sets the identified sandbox as currently active.
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### Delete Command
+```
+Usage: akamai-sandbox delete [options] <sandbox-id>
+
+Deletes the sandbox.
+
+Options:
+  -f, --force  Attempt to remove the sandbox without prompting for
+               confirmation.
+  -h, --help   Output usage information.
+```
+
+### Clone Command
+```
+Usage: akamai-sandbox clone [options] <sandbox-identifier>
+
+Creates a replica of a given sandbox.
+
+Options:
+  -n, --name <string>                Name of the sandbox.
+  --origin-from <property | config>  Redirect origin traffic to the origins
+                                     defined in your Akamai property or config
+                                     file.
+  -h, --help                         Output usage information.
+```
+
+### Start Command
+```
+Usage: akamai-sandbox start [options]
+
+Starts the sandbox client.
+
+Options:
+  --print-logs  Print logs to standard output.
+  -h, --help    Output usage information.
+```
+
+### Add Property Command
+```
+Usage: akamai-sandbox add-property [options] [sandbox-identifier]
+
+Add a property to a sandbox
+
+Options:
+  -r, --rules <file>                                      JSON file containing a PAPI rule tree.
+  -p, --property <property_id | property_name : version>  Property to use. If you do not specify a version, the most recent version is used.
+  -o, --hostname <hostname>                               The hostname of your Akamai property, such as www.example.com.
+  -H, --requesthostnames <string>                         Comma separated list of request hostnames.
+  -h, --help                                              Output usage information.
+```
+
+### Sync Sandbox Command
+```
+Usage: akamai-sandbox sync-sandbox [options] <jwtToken>
+
+Sync down a remote sandbox to the local system
+
+Options:
+  -n, --name <string>                Recommended to use the sandbox name
+                                     provided during creation. If sandbox
+                                     folder name already exists locally, custom
+                                     sandbox name can be provided.
+  --origin-from <property | config>  Redirect origin traffic to the origins
+                                     defined in your Akamai property or config
+                                     file.
+  -h, --help                         Output usage information.
+```
+
+### Add Edgeworker Command
+```
+Usage: akamai-sandbox add-edgeworker [options] <edgeworker-id> <edgeworker-tarball>
+
+Add edgeworker to the currently active sandbox. The edgeworker-id must be an unsigned integer.
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### Download Edgeworker Command
+```
+Usage: akamai-sandbox download-edgeworker [options] <edgeworker-id>
+
+Download edgeworker for the currently active sandbox
+
+Options:
+  -h, --help  Output usage information.
+```
+
+### Delete Edgeworker Command
+```
+Usage: akamai-sandbox delete-edgeworker [options] <edgeworker-id>
+
+Delete edgeworker for the currently active sandbox
+
+Options:
+  -f, --force  Attempt to remove the edgeworker without prompting for
+               confirmation.
+  -h, --help   Output usage information.
+```
+
 
 ## Customizable Template
 You can use this example "recipe" to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.
