@@ -747,7 +747,7 @@ program
 
 program
   .command('show [sandbox-identifier]')
-  .description('Provides details about a sandbox and the JWT expiration date')
+  .description('Provides details about a sandbox and the JWT expiration date.')
   .action(async function(arg) {
     try {
       let sandboxIdToUse = null;
@@ -901,7 +901,7 @@ program
 
 program
   .command('create')
-  .description('Creates a new sandbox')
+  .description('Creates a new sandbox.')
   .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree. You need to specify a property or hostname to base the sandbox on when using this method.')
   .option('-p, --property <property_id | property_name : version>', 'Property to base the sandbox on. If an active version is not found, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
@@ -989,7 +989,7 @@ program
 
 program
   .command('add-property [sandbox-identifier]')
-  .description('Add a property to a sandbox')
+  .description('Add a property to a sandbox.')
   .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
   .option('-p, --property <property_id | property_name : version>', 'Property to use. If you do not specify a version, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
@@ -1028,8 +1028,8 @@ program
   });
 
 program
-  .command('sync-sandbox <jwtToken>')
-  .description('Sync down a remote sandbox to the local system')
+  .command('sync-sandbox <JWT>')
+  .description('Sync down a remote sandbox to the local system.')
   .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
   .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function(jwt, options) {
@@ -1077,7 +1077,7 @@ program
 
 program
   .command('rotate-jwt [sandbox-identifier]')
-  .description('Rotate Json Web Token for sandbox')
+  .description('Rotate Json Web Token for sandbox.')
   .action(async function(arg) {
     try {
       let sandboxId;
@@ -1108,7 +1108,7 @@ program
 
 program
   .command('update-edgeworker <edgeworker-id> <edgeworker-tarball>')
-  .description('Update edgeworker to the currently active sandbox')
+  .description('Update edgeworker to the currently active sandbox.')
   .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
     helpExitOnNoArgs(options);
     await addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'update');
@@ -1116,7 +1116,7 @@ program
 
 program
   .command('download-edgeworker <edgeworker-id>')
-  .description('Download edgeworker for the currently active sandbox')
+  .description('Download edgeworker for the currently active sandbox.')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
@@ -1134,7 +1134,7 @@ program
 
 program
   .command('delete-edgeworker <edgeworker-id>')
-  .description('Delete edgeworker for the currently active sandbox')
+  .description('Delete edgeworker for the currently active sandbox.')
   .option('-f, --force', 'Attempt to remove the edgeworker without prompting for confirmation.')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
