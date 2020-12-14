@@ -16,7 +16,7 @@ const edgeRcParams = {
 export function getEdgeGrid() {
 
   if (!fs.existsSync(untildify(edgeRcParams.path))) {
-    cliUtils.logAndExit(1, `ERROR: Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
+    cliUtils.logAndExit(1, `Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
   }
 
   try {
@@ -26,7 +26,7 @@ export function getEdgeGrid() {
       debug: edgeRcParams.debug
     });
   } catch (e) {
-    cliUtils.logAndExit(1, `ERROR: ${e.message}`);
+    cliUtils.logAndExit(1, e.message);
   }
 }
 

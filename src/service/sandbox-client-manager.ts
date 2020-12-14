@@ -50,8 +50,7 @@ export async function downloadClient() {
   await download(DOWNLOAD_URL, DOWNLOAD_DIR);
 
   if (!fs.existsSync(CONNECTOR_DOWNLOAD_LOCATION)) {
-    console.log("ERROR: file not successfully downloaded");
-    process.exit();
+    cliUtils.logAndExit(1, "sandbox client was not downloaded successfully.")
   }
   console.log(`installing to ${CLIENT_INSTALL_PATH}`);
   await unzipClient();
@@ -250,7 +249,7 @@ export async function executeSandboxClient(printLogs) {
 
   shell.exec(cmd,  function(exitCode) {
     if (exitCode !== 0) {
-      cliUtils.logAndExit(1, "ERROR: Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.");
+      cliUtils.logAndExit(1, "Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.");
     }
   });
 }
