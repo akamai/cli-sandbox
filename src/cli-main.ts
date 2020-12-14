@@ -675,15 +675,16 @@ function helpExitOnNoArgs(cmd) {
   }
 }
 
-const program = require('commander');
+const program = require('commander')
+  .version(pkginfo.version, '-V, --version', 'Output the current version.')
+  .helpOption('-h, --help', 'Output usage information.')
 
 program
-  .version(pkginfo.version)
   .description(pkginfo.description)
   .option('--debug', 'Show debug information.')
   .option('--edgerc <file>', 'Use edgerc file for authentication.')
   .option('--section <name>', 'Use this section in edgerc file that contains the credential set.')
-  .option('--accountkey <account-id>', 'internal parameter')
+  .option('--accountkey <account-id>', 'Use given internal parameter.')
   .on('option:edgerc', function(edgeRcFilePath) {
     envUtils.setEdgeRcFilePath(edgeRcFilePath);
   })
@@ -881,7 +882,7 @@ program
 program
   .command('clone <sandbox-identifier>')
   .description('Creates a replica of a given sandbox.')
-  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('-n, --name <string>', 'Name of the sandbox.')
   .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function(arg, options) {
     validateArgument('--origin-from', options.originFrom, [OriginMapping.FROM_CONFIG, OriginMapping.FROM_PROPERTY]);
@@ -906,7 +907,7 @@ program
   .option('-p, --property <property_id | property_name : version>', 'Property to base the sandbox on. If an active version is not found, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
   .option('-c, --clonable <boolean>', 'Make this sandbox clonable.')
-  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('-n, --name <string>', 'Name of the sandbox.')
   .option('-H, --requesthostnames <string>', 'Comma separated list of request hostnames.')
   .option('--recipe <file>', 'Path to recipe.json file.')
   .option('-C, --cpcode <cpcode>', 'Specify an existing cpcode instead of letting the system generate a new one.')
