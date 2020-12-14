@@ -24,7 +24,7 @@
     "inquirer": "6.2.0",
     "jsonschema": "1.2.4",
     "jwt-decode": "^2.2.0",
-    "lodash": "4.17.15",
+    "lodash": "^4.17.20",
     "shelljs": "0.8.2",
     "untildify": "3.0.3",
     "unzipper": "0.9.3",
