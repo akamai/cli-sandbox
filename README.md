@@ -76,7 +76,7 @@ ___
 ## Overview of Commands
 Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://developer.akamai.com/api/core_features/sandbox/v1.html).
 
-All commands have a buil-in help available using `help command`.
+All commands have a built-in help available using `help command`.
 
 Below is a description of the most commonly used commands.
 
