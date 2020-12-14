@@ -1,5 +1,5 @@
 import {SandboxDatastore} from './sandbox-datastore';
-import {SandboxRecord} from "./sandbox-record";
+import {SandboxRecord} from './sandbox-record';
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 
@@ -46,11 +46,11 @@ const DEFAULT_ORIGIN_TARGET = {
 };
 
 export async function downloadClient() {
-  console.log("downloading sandbox client...");
+  console.log('downloading sandbox client...');
   await download(DOWNLOAD_URL, DOWNLOAD_DIR);
 
   if (!fs.existsSync(CONNECTOR_DOWNLOAD_LOCATION)) {
-    cliUtils.logAndExit(1, "sandbox client was not downloaded successfully.")
+    cliUtils.logAndExit(1, 'sandbox client was not downloaded successfully.')
   }
   console.log(`installing to ${CLIENT_INSTALL_PATH}`);
   await unzipClient();
@@ -62,7 +62,7 @@ function unzipClient() {
     (resolve, reject) => {
       fs.createReadStream(CONNECTOR_DOWNLOAD_LOCATION)
         .pipe(unzipper.Extract({path: SANDBOX_CLI_HOME}))
-        .on('finish', function (err) {
+        .on('finish', function(err) {
           if (err) {
             reject(err);
           } else {
@@ -90,12 +90,12 @@ function buildClientConfig(origins: Array<string>, passThrough: boolean) {
       to: DEFAULT_ORIGIN_TARGET
     });
   } else {
-   origins.forEach(o => {
-     clientConfig.originMappings.push({
-       from: o,
-       to: passThrough ? "pass-through" : DEFAULT_ORIGIN_TARGET
-     });
-   });
+    origins.forEach(o => {
+      clientConfig.originMappings.push({
+        from: o,
+        to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
+      });
+    });
   }
   return clientConfig;
 }
@@ -111,7 +111,7 @@ function mergeOrigins(clientConfig, origins: Array<string>, passThrough: boolean
     if (!inCc.has(o)) {
       clientConfig.originMappings.push({
         from: o,
-        to: passThrough ? "pass-through" : DEFAULT_ORIGIN_TARGET
+        to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
       });
     }
   })
@@ -169,6 +169,17 @@ function getCurrentSandboxFolder() {
   return getSandboxFolder(datastore.getCurrent().sandboxId);
 }
 
+export function updateJWT(sandboxId: string, newJwt: string) {
+  const rec: SandboxRecord = datastore.getRecord(sandboxId);
+  if (!rec) {
+    cliUtils.logAndExit(1, `Unable to set the new JWT into local configuration for sandbox ID: ${sandboxId}\n` +
+     `The new token: ${newJwt}`);
+    return;
+  }
+  rec.jwt = newJwt;
+  datastore.save(rec);
+}
+
 export function getSandboxLocalData(sandboxId: string) {
   const rec = datastore.getRecord(sandboxId);
   if (!rec) {
@@ -176,6 +187,7 @@ export function getSandboxLocalData(sandboxId: string) {
   }
   return {
     isCurrent: rec.current,
+    jwt: rec.jwt,
     sandboxFolder: getSandboxFolder(sandboxId),
   }
 }
@@ -189,7 +201,7 @@ export function flushLocalSandbox(sandboxId: string) {
     return;
   }
 
-  console.log("removing local files");
+  console.log('removing local files');
   const sb = datastore.getRecord(sandboxId);
   const folderPath = path.join(SANDBOXES_DIR, sb.folder);
   fsExtra.removeSync(folderPath);
@@ -216,7 +228,7 @@ export function hasCurrent() {
   return !!getCurrentSandboxId();
 }
 
-export async function hasSandboxFolder(sandboxName){
+export async function hasSandboxFolder(sandboxName) {
   const files = fs.readdirSync(SANDBOXES_DIR);
   return files.some(fileItem => fileItem.toLowerCase() === sandboxName.toLowerCase());
 }
@@ -228,7 +240,7 @@ export async function executeSandboxClient(printLogs) {
 
   const springProfiles = [];
   if (printLogs) {
-    springProfiles.push("print-logs")
+    springProfiles.push('print-logs')
   }
 
   const args = [
@@ -247,9 +259,9 @@ export async function executeSandboxClient(printLogs) {
 
   printStartupInfo(configPath, loggingPath, loggingFilePath);
 
-  shell.exec(cmd,  function(exitCode) {
+  shell.exec(cmd, function(exitCode) {
     if (exitCode !== 0) {
-      cliUtils.logAndExit(1, "Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.");
+      cliUtils.logAndExit(1, 'Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.');
     }
   });
 }

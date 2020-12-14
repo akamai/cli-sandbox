@@ -54,7 +54,8 @@ function showLocalSandboxes() {
     return {
       current: sb.current ? 'YES' : '',
       name: sb.name,
-      sandbox_id: sb.sandboxId
+      sandbox_id: sb.sandboxId,
+      jwt_expiration: jwtExpirationDateString(sb.jwt)
     }
   });
   showSandboxesTable(sandboxes);
@@ -127,12 +128,23 @@ function getOriginsForPapiRules(papiRules) {
   return o;
 }
 
+function jwtExpirationDateString(jwtToken) {
+  try {
+    const decoded = jwtDecode(jwtToken);
+    const expirationDate = decoded['exp'] * 1000;
+    return cliUtils.dateToString(expirationDate);
+  } catch (e) {
+    return 'unknown';
+  }
+}
+
 async function showSandboxOverview(sandboxId: string) {
   const localSandbox = sandboxClientManager.getSandboxLocalData(sandboxId);
   if (localSandbox) {
     cliUtils.logWithBorder('Local sandbox information:');
     console.log('sandbox_id: ' + sandboxId);
     console.log('local directory: ' + localSandbox.sandboxFolder);
+    console.log(`JWT expiration: ${jwtExpirationDateString(localSandbox.jwt)}`);
     console.log(`current: ${localSandbox.isCurrent}\n`);
   }
   const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
@@ -574,7 +586,7 @@ async function downloadClientIfNecessary() {
       await sandboxClientManager.downloadClient();
     }
   } catch (e) {
-    cliUtils.logAndExit(1, 'ERROR occurred during client download: ' + e);
+    cliUtils.logAndExit(1, 'occurred during client download: ' + e);
   }
 }
 
@@ -735,7 +747,7 @@ program
 
 program
   .command('show [sandbox-identifier]')
-  .description('Provides details about a sandbox.')
+  .description('Provides details about a sandbox and the JWT expiration date')
   .action(async function(arg) {
     try {
       let sandboxIdToUse = null;
@@ -1061,6 +1073,29 @@ program
       handleException(e);
     }
     sandboxSvc.setAccountWide(false);
+  });
+
+program
+  .command('rotate-jwt [sandbox-identifier]')
+  .description('Rotate Json Web Token for sandbox')
+  .action(async function(arg) {
+    try {
+      let sandboxId;
+      if (!arg) {
+        sandboxId = sandboxClientManager.getCurrentSandboxId();
+        if (!sandboxId) {
+          cliUtils.logAndExit(1, 'Unable to determine sandbox_id.');
+        }
+      } else {
+        sandboxId = getSandboxIdFromIdentifier(arg);
+      }
+      const result = await cliUtils.spinner(sandboxSvc.rotateJWT(sandboxId), 'rotating JWT');
+      await sandboxClientManager.updateJWT(sandboxId, result.jwtToken);
+      console.log(`Successfully rotated a JWT for sandbox ID: ${sandboxId}`);
+      console.log(`The new token expires on ${jwtExpirationDateString(result.jwtToken)}`);
+    } catch (e) {
+      handleException(e);
+    }
   });
 
 program
