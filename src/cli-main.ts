@@ -663,15 +663,16 @@ function helpExitOnNoArgs(cmd) {
   }
 }
 
-const program = require('commander');
+const program = require('commander')
+  .version(pkginfo.version, '-V, --version', 'Output the current version.')
+  .helpOption('-h, --help', 'Output usage information.')
 
 program
-  .version(pkginfo.version)
   .description(pkginfo.description)
   .option('--debug', 'Show debug information.')
   .option('--edgerc <file>', 'Use edgerc file for authentication.')
   .option('--section <name>', 'Use this section in edgerc file that contains the credential set.')
-  .option('--accountkey <account-id>', 'internal parameter')
+  .option('--accountkey <account-id>', 'Use given internal parameter.')
   .on('option:edgerc', function(edgeRcFilePath) {
     envUtils.setEdgeRcFilePath(edgeRcFilePath);
   })
@@ -869,7 +870,7 @@ program
 program
   .command('clone <sandbox-identifier>')
   .description('Creates a replica of a given sandbox.')
-  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('-n, --name <string>', 'Name of the sandbox.')
   .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function(arg, options) {
     validateArgument('--origin-from', options.originFrom, [OriginMapping.FROM_CONFIG, OriginMapping.FROM_PROPERTY]);
@@ -894,7 +895,7 @@ program
   .option('-p, --property <property_id | property_name : version>', 'Property to base the sandbox on. If an active version is not found, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
   .option('-c, --clonable <boolean>', 'Make this sandbox clonable.')
-  .option('-n, --name <string>', 'Name of sandbox.')
+  .option('-n, --name <string>', 'Name of the sandbox.')
   .option('-H, --requesthostnames <string>', 'Comma separated list of request hostnames.')
   .option('--recipe <file>', 'Path to recipe.json file.')
   .option('-C, --cpcode <cpcode>', 'Specify an existing cpcode instead of letting the system generate a new one.')
@@ -977,7 +978,7 @@ program
 
 program
   .command('add-property [sandbox-identifier]')
-  .description('Add a property to a sandbox')
+  .description('Add a property to a sandbox.')
   .option('-r, --rules <file>', 'JSON file containing a PAPI rule tree.')
   .option('-p, --property <property_id | property_name : version>', 'Property to use. If you do not specify a version, the most recent version is used.')
   .option('-o, --hostname <hostname>', 'The hostname of your Akamai property, such as www.example.com.')
@@ -1017,7 +1018,7 @@ program
 
 program
   .command('sync-sandbox <jwtToken>')
-  .description('Sync down a remote sandbox to the local system')
+  .description('Sync down a remote sandbox to the local system.')
   .option('-n, --name <string>', 'Recommended to use the sandbox name provided during creation. If sandbox folder name already exists locally, custom sandbox name can be provided.')
   .option('--origin-from <property | config>', 'Redirect origin traffic to the origins defined in your Akamai property or config file.')
   .action(async function(jwt, options) {
@@ -1073,7 +1074,7 @@ program
 
 program
   .command('update-edgeworker <edgeworker-id> <edgeworker-tarball>')
-  .description('Update edgeworker to the currently active sandbox')
+  .description('Update edgeworker to the currently active sandbox.')
   .action(async function(edgeworkerId, edgeworkerTarballPath, options) {
     helpExitOnNoArgs(options);
     await addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, 'update');
@@ -1081,7 +1082,7 @@ program
 
 program
   .command('download-edgeworker <edgeworker-id>')
-  .description('Download edgeworker for the currently active sandbox')
+  .description('Download edgeworker for the currently active sandbox.')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
     try {
@@ -1099,7 +1100,7 @@ program
 
 program
   .command('delete-edgeworker <edgeworker-id>')
-  .description('Delete edgeworker for the currently active sandbox')
+  .description('Delete edgeworker for the currently active sandbox.')
   .option('-f, --force', 'Attempt to remove the edgeworker without prompting for confirmation.')
   .action(async function(edgeworkerId, options) {
     helpExitOnNoArgs(options);
