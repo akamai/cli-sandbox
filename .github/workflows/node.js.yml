@@ -1,0 +1,35 @@
+name: Node.js CI
+
+on:
+  push:
+    branches:
+      - testing
+      - master
+      - develop
+  pull_request:
+    branches:
+      - testing
+      - master
+      - develop
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [8.x, 10.x, 12.x, 14.x]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm run build --if-present
+    - run: touch /tmp/test-edgerc
+    - run: ./akamai-sandbox --edgerc /tmp/test-edgerc help
+      env:
+        AKAMAI_CLI_CACHE_PATH: /tmp
