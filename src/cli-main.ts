@@ -26,7 +26,7 @@ if (envUtils.getNodeVersion() < 8) {
 require('util');
 const validator = require('validator');
 const pkginfo = require('../package.json');
-require('console.table');
+const Table = require('easy-table')
 const Validator = require('jsonschema').Validator;
 const jsonSchemaValidator = new Validator();
 const recipeFileSchema = require('../schemas/recipe.json');
@@ -65,7 +65,12 @@ function showSandboxesTable(sandboxes) {
   if (sandboxes.length === 0) {
     console.log('No sandboxes found.');
   } else {
-    console.table(sandboxes);
+    Table.log(sandboxes,  {
+      current: {name: 'Default'},
+      name: {name: 'Sandbox Name'},
+      sandbox_id: {name: 'Sandbox ID'},
+      jwt_expiration: {name: 'JWT Expiration Date'}
+    });
   }
 }
 
@@ -321,7 +326,7 @@ async function createFromHostname(hostname: string, hostnames: Array<string>, is
 
 async function getOriginListForSandboxId(sandboxId: string): Promise<Array<string>> {
   const rulesList = await getRulesForSandboxId(sandboxId);
-  const origins = new Set();
+  const origins = new Set<string>();
   rulesList.forEach(entry => {
     const originsForRules = getOriginsForPapiRules(entry.rules);
     originsForRules.forEach(o => origins.add(o));
