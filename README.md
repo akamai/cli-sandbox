@@ -91,7 +91,7 @@ A tool that makes it easier to manage Akamai Sandboxes. Call the Sandbox API fro
 Options:
   -V, --version                                                 Output the current version.
   --debug                                                       Show debug information.
-  --edgerc <path>                                               Use edgerc file for authentication.
+  --edgerc <file>                                               Use edgerc file for authentication.
   --section <name>                                              Use this section in edgerc file that contains the credential set.
   --accountkey <account-id>                                     Use given internal parameter.
   -h, --help                                                    Output usage information.
@@ -100,23 +100,22 @@ Commands:
   help [command]                                                Displays help information for the given command.
   install                                                       Downloads and installs the Sandbox Client software.
   list|ls [options]                                             Lists sandboxes that you have managed locally.
-  show [sandbox-identifier]                                     Provides details about a sandbox.
+  show [sandbox-identifier]                                     Provides details about a sandbox and the JWT expiration date.
   rules [sandbox-identifier]                                    Shows rule tree for sandbox.
   use <sandbox-identifier>                                      Sets the identified sandbox as currently active.
   delete [options] <sandbox-id>                                 Deletes the sandbox.
   update-property [options] <sandbox-id> <sandbox-property-id>  Updates a sandbox-property.
   update [options] [sandbox-identifier]                         Updates a sandbox.
   clone [options] <sandbox-identifier>                          Creates a replica of a given sandbox.
-  create [options]                                              Creates a new sandbox
+  create [options]                                              Creates a new sandbox.
   start [options]                                               Starts the sandbox client.
-  add-property [options] [sandbox-identifier]                   Add a property to a sandbox
-  sync-sandbox [options] <jwtToken>                             Sync down a remote sandbox to the local system
-  add-edgeworker <edgeworker-id> <edgeworker-tarball>           Add edgeworker to the currently active sandbox. The edgeworker-id must be an
-                                                                unsigned integer.
-  update-edgeworker <edgeworker-id> <edgeworker-tarball>        Update edgeworker to the currently active sandbox
-  download-edgeworker <edgeworker-id>                           Download edgeworker for the currently active sandbox
-  delete-edgeworker [options] <edgeworker-id>                   Delete edgeworker for the currently active sandbox
-
+  add-property [options] [sandbox-identifier]                   Add a property to a sandbox.
+  sync-sandbox [options] <JWT>                                  Sync down a remote sandbox to the local system.
+  rotate-jwt [sandbox-identifier]                               Rotate Json Web Token for sandbox.
+  add-edgeworker <edgeworker-id> <edgeworker-tarball>           Add edgeworker to the currently active sandbox. The edgeworker-id must be an unsigned integer.
+  update-edgeworker <edgeworker-id> <edgeworker-tarball>        Update edgeworker to the currently active sandbox.
+  download-edgeworker <edgeworker-id>                           Download edgeworker for the currently active sandbox.
+  delete-edgeworker [options] <edgeworker-id>                   Delete edgeworker for the currently active sandbox.
 ```
 
 ### Create Command
