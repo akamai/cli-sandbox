@@ -46,7 +46,7 @@ const DEFAULT_ORIGIN_TARGET = {
 };
 
 export async function downloadClient() {
-  console.log('downloading sandbox client...');
+  console.log('Downloading sandbox client...');
   await download(DOWNLOAD_URL, DOWNLOAD_DIR);
 
   if (!fs.existsSync(CONNECTOR_DOWNLOAD_LOCATION)) {
@@ -138,7 +138,7 @@ export function registerNewSandbox(sandboxid: string, jwt: string, name: string,
 
   const record = new SandboxRecord(sandboxid, folderName, true, name, jwt);
   datastore.save(record);
-  console.log(`sandbox_id: ${sandboxid} ${name} is now active`);
+  console.log(`sandbox-id: ${sandboxid} ${name} is now active`);
   return {
     configPath
   }
@@ -172,7 +172,7 @@ function getCurrentSandboxFolder() {
 export function updateJWT(sandboxId: string, newJwt: string) {
   const rec: SandboxRecord = datastore.getRecord(sandboxId);
   if (!rec) {
-    cliUtils.logAndExit(1, `Unable to set the new JWT into local configuration for sandbox ID: ${sandboxId}\n` +
+    cliUtils.logAndExit(1, `Unable to set the new JWT into local configuration for sandbox-id: ${sandboxId}\n` +
      `The new token: ${newJwt}`);
     return;
   }

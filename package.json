@@ -16,7 +16,7 @@
   "dependencies": {
     "app-root-path": "2.0.1",
     "cli-spinner": "0.2.8",
-    "commander": "4.1.0",
+    "commander": "^4.1.1",
     "download": "7.1.0",
     "easy-table": "^1.1.1",
     "edgegrid": "3.0.8",
