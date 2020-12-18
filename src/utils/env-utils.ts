@@ -47,7 +47,7 @@ export function isDebugMode() {
 }
 
 export function getNodeVersion() {
-  return parseInt(process.versions["node"].split('.')[0]);
+  return parseInt(process.versions['node'].split('.')[0]);
 }
 
 export function getJavaHome() {
