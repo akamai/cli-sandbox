@@ -65,7 +65,7 @@ function showSandboxesTable(sandboxes) {
   if (sandboxes.length === 0) {
     console.log('No sandboxes found.');
   } else {
-    Table.log(sandboxes,  {
+    Table.log(sandboxes, {
       current: {name: 'Default'},
       name: {name: 'Sandbox Name'},
       sandbox_id: {name: 'Sandbox ID'},
@@ -178,7 +178,8 @@ function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true)
       return null;
     }
   } else if (results.length > 1) {
-    cliUtils.logAndExit(1, `${results.length} Local sandboxes match input. Please be more specific.`);
+    cliUtils.logAndExit(1,
+      `${results.length} sandbox identifiers share: '${identifier}'. To identify a sandbox, provide a longer matching phrase.`);
   } else {
     return results[0];
   }
@@ -702,8 +703,8 @@ program
   .on('option:debug', function() {
     envUtils.setDebugMode(true);
   })
-  .on('command:*', function (operands) {
-    cliUtils.logAndExit(1,`Unknown command '${operands[0]}'. See 'akamai sandbox --help'.`);
+  .on('command:*', function(operands) {
+    cliUtils.logAndExit(1, `Unknown command '${operands[0]}'. See 'akamai sandbox --help'.`);
   });
 
 program
@@ -803,8 +804,8 @@ program
 program
   .command('use <sandbox-id>')
   .description('Sets a default sandbox for commands requiring [sandbox-id].')
-  .action(function(sandboxId, arg) {
-    const sb = getLocalSandboxForIdentifier(arg);
+  .action(function(sandboxId) {
+    const sb = getLocalSandboxForIdentifier(sandboxId);
     sandboxClientManager.makeCurrent(sb.sandboxId);
     console.log(`Sandbox: ${sb.name} is now active`)
   });
