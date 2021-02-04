@@ -246,4 +246,10 @@ export function deleteEdgeWorkerFromSandbox(sandboxId: string, edgeworkerId: str
   return del(endpoint).then(r => r.body);
 }
 
+export function rotateJWT(sandboxId: string) {
+  const endpoint = `${SANDBOX_API_BASE}/sandboxes/${sandboxId}/rotateJWT`;
+  return postJson(endpoint, {}).then(r => r.body);
+}
+
+
 

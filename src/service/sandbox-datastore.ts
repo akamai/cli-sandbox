@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as cliUtils from '../utils/cli-utils';
-import {SandboxRecord} from "./sandbox-record";
+import {SandboxRecord} from './sandbox-record';
 
 export class SandboxDatastore {
   private readonly data: object;

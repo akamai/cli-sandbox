@@ -29,7 +29,7 @@ export function logAndExit(exitCode: number, msg: string) {
 }
 
 export function logError(msg: string) {
-  console.error("ERROR: " + msg);
+  console.error('ERROR: ' + msg);
 }
 
 export async function confirm(msg: string) {
@@ -59,4 +59,14 @@ export async function spinner(func, userMsg: string = '') {
 
 export function toJsonPretty(obj) {
   return JSON.stringify(obj, undefined, 2);
+}
+
+export function dateToString(date){
+  const options = {
+    year: 'numeric', month: 'short', day: 'numeric',
+    hour: 'numeric', minute: 'numeric',
+    timeZone: 'UTC',
+    timeZoneName: 'short'
+  };
+  return new Intl.DateTimeFormat('en-US', options).format(date)
 }
