@@ -233,6 +233,11 @@ export async function hasSandboxFolder(sandboxName) {
   return files.some(fileItem => fileItem.toLowerCase() === sandboxName.toLowerCase());
 }
 
+
+function versionToNumber(version) {
+  return version.split('.').map(s => parseInt(s)).reduce((acc, value) => 100 * acc + value);
+}
+
 export async function executeSandboxClient(printLogs) {
   const loggingPath = getLogPath();
   const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
@@ -244,12 +249,19 @@ export async function executeSandboxClient(printLogs) {
   }
 
   const args = [
-    `"${await envUtils.getJavaExecutablePath()}"`,
-    `-DLOG_PATH="${loggingPath}"`,
-    `-DLOGGING_CONFIG_FILE="${LOG_CONFIG_FILE}"`,
-    `-jar "${JAR_FILE_PATH}"`,
-    `--config="${configPath}"`,
+    `"${await envUtils.getJavaExecutablePath()}"`
   ];
+
+  if (versionToNumber(CONNECTOR_VERSION) >= versionToNumber('1.3.1')) {
+    args.push(`-DLOG_PATH="${loggingPath}"`);
+    args.push(`-DLOGGING_CONFIG_FILE="${LOG_CONFIG_FILE}"`);
+  } else {
+    args.push(`-Dlogging.file.path="${loggingPath}"`);
+    args.push(`-Dlogging.config="${LOG_CONFIG_FILE}"`);
+  }
+
+  args.push(`-jar "${JAR_FILE_PATH}"`);
+  args.push(`--config="${configPath}"`);
 
   if (springProfiles.length > 0) {
     args.push(`--spring.profiles.active=${springProfiles.join()}`)
@@ -257,7 +269,7 @@ export async function executeSandboxClient(printLogs) {
 
   const cmd = args.join(' ');
 
-  printStartupInfo(configPath, loggingPath, loggingFilePath);
+  printStartupInfo(configPath, loggingPath, loggingFilePath, args);
 
   shell.exec(cmd, function(exitCode) {
     if (exitCode !== 0) {
@@ -266,10 +278,11 @@ export async function executeSandboxClient(printLogs) {
   });
 }
 
-function printStartupInfo(configPath: string, loggingPath: string, loggingFilePath: string) {
+function printStartupInfo(configPath: string, loggingPath: string, loggingFilePath: string, args) {
   console.log('Starting Sandbox Client with arguments:');
   console.log(`Config: ${configPath}`);
   console.log(`Logging path: ${loggingPath}`);
   console.log(`Logging file: ${loggingFilePath}`);
   console.log(`Logging config: ${LOG_CONFIG_FILE}\n`);
+  console.log(`Arguments: ${args}\n`);
 }
