@@ -245,8 +245,8 @@ export async function executeSandboxClient(printLogs) {
 
   const args = [
     `"${await envUtils.getJavaExecutablePath()}"`,
-    `-Dlogging.file.path="${loggingPath}"`,
-    `-Dlogging.config="${LOG_CONFIG_FILE}"`,
+    `-DLOG_PATH="${loggingPath}"`,
+    `-DLOGGING_CONFIG_FILE="${LOG_CONFIG_FILE}"`,
     `-jar "${JAR_FILE_PATH}"`,
     `--config="${configPath}"`,
   ];
