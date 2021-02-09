@@ -10,11 +10,11 @@ To use this tool you need:
 
 ## Quick Start
 
-### Step 1: Install Sandbox CLI 
+#### Step 1: Install Sandbox CLI 
 
 `akamai install sandbox`
 
-### Step 2: Create a sandbox 
+#### Step 2: Create a sandbox 
 
 There are a variety of ways to create a sandbox. These code samples show a few common options.
 
@@ -32,20 +32,21 @@ There are a variety of ways to create a sandbox. These code samples show a few c
 
 `akamai sandbox create --property example_prod_pm:42 --name sandbox_for_example.com`   
 
-When creating the sandbox based on a property, the CLI automatically scans the Property Manager configuration, detects all the origins defined in the file, and asks you to confirm if you want sandbox requests to go directly to these origins. This is an example of how the auto scan works:
+When creating the sandbox based on a property, the CLI automatically scans the Property Manager configuration, detects all the origins defined in the file and either use the origins from property (`--origin-from property`) or from config file (`--origin-from config`).
+Alternatively if you don't provide `--origin-from` command it will ask you to confirm if you want sandbox requests to go directly to origins from property or from config file. This is an example of how the auto scan works:
 
 ```
-my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com
+my_laptop:~ username$ akamai sandbox create --property www.example.com:5 --name sandbox_for_example.com --requesthostnames localhost,www.example.com --origin-from config
 building origin list 
 Detected the following origins: origin-www.example.com  
-? Do you want the Sandbox Client to proxy the origins in your dev environment to the destination defined in the Akamai config? Enter **y** and the CLI will automatically update your configuration file. If you want to route sandbox traffic to different development origins, enter **n** to customize the origin mappings.
 registering sandbox in local datastore
-sandbox_id: 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52 sandbox_for_example.com is now active  
-Successfully created sandbox_id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json Edit this file to specify the port and host for your dev environment. 
+sandbox-id: 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52 sandbox_for_example.com is now active  
+Successfully created sandbox-id 4b3a0c0e-dfe9-4df8-b175-1ed23e293c52. Generated sandbox client configuration at /Users/username/.akamai-cli/cache/sandbox-cli/sandboxes/sandbox_for_example.com/config.json Edit this file to specify the port and host for your dev environment. 
 my_laptop:~ username$
 ``` 
 
-### Step 3: Connect to your sandbox
+
+#### Step 3: Connect to your sandbox
 Run this command to connect securely to the sandbox you just created:
 
 `akamai sandbox start`
@@ -54,7 +55,9 @@ You will see this message confirming that you are connected to the sandbox:
 
 `INFO  c.a.devpops.connector.ConnectorMain - Successfully launched Akamai Sandbox Client`
 
-### Step 4: Test the Sandbox
+You may also add a `--print-logs` parameter to display logs directly on standard output. 
+
+#### Step 4: Test the Sandbox
 You have two options to test the Sandbox.
 
 * Point the hostname associated with the Property Manager configuration to `127.0.0.1` in your `/etc/hosts` file, then access the site from your browser `http://<your-hostname>:9550`.
@@ -63,83 +66,56 @@ You have two options to test the Sandbox.
 
 * Run this curl command: `curl --header 'Host: www.example.com' http://127.0.0.1:9550/`
 
-### Step 5: Validate that your responses are coming from a Sandbox 
+#### Step 5: Validate that your responses are coming from a Sandbox 
 All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. Use the [Developer Toolkit](https://developer.akamai.com/tools/akamai-developer-toolkit-chrome) to validate the presence of the header.
 
-### Debug and report issues
+#### Debug and report issues
 You are all set, happy debugging! If you experience any issues with Sandbox, raise them as a [github issue](https://github.com/akamai/cli-sandbox/issues). Feel free to create a pull request with the fix or suggestion.
 ___
 
 ## Overview of Commands
 Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://developer.akamai.com/api/core_features/sandbox/v1.html).
 
-> **NOTE**: `sandbox-identifier` is a string that uniquely identifies a sandbox (matches on `name` or `sandboxID`). If you do not specify a `sandbox-identifier`, the CLI uses the currently active sandbox.
+Every command has a built-in help available by using `--help` or `-h`. Alternatively, you can use `akamai sandbox help [command]` 
 
-optional args `[]`
-required args `<>`
+Command arguments in `[]` are optional, whereas command arguments in `<>` are required.
 
-Usage:  `[options] [command]`
+> **NOTE**: `sandbox-id` is a string that uniquely identifies a sandbox by `name` or `sandbox-id`. If you don’t specify a `sandbox-id`, the CLI uses the default sandbox. You can set the default with the `use` command.
+
+```
+Usage:  [options] [command]
+
+A tool that makes it easier to manage Akamai Sandboxes. Call the Sandbox API from the command line.
 
 Options:
- 
-| Syntax | Description |
-| - | - |
-| -V, --version | Display the version number for the Sandbox CLI program. |
-| --debug | Show debug information. |
-| --edgerc `<path>` | Use credentials in `edgerc` file for command. (Default file location is _~/.edgerc_) |
-| --section `<name>` | Use this section in `edgerc` file. (Default section is _[default]_|
-| -h, --help | Display usage information for Sandbox CLI. |
- 
+  -V, --version                                                 Output the current version.
+  --debug                                                       Show debug information.
+  --edgerc <file>                                               Use edgerc file for authentication.
+  --section <name>                                              Use this section in edgerc file that contains the credential set.
+  --accountkey <account-id>                                     Use given internal parameter.
+  -h, --help                                                    Output usage information.
+
 Commands:
-
-| Command | Description |
-| - | - |
-| help [command] | Display usage information for the given command. |
-| install | Download and install the sandbox client software. |
-| list, ls [options] | List sandboxes that are available locally. |
-| show [sandbox-identifier] | Show details about a sandbox. |
-| rules [sandbox-identifier] | Show rule tree for the property within the sandbox. |
-| use `<sandbox-identifier>` | Set the identified sandbox as active. |
-| delete `<sandbox-identifier>` | Delete the specified sandbox. |
-| update-property [options] `<sandbox-id> <sandbox-property-id>` | Update the sandbox property. |
-| update [options] [sandbox-identifier] | Update the sandbox. |
-| clone [options] `<sandbox-identifier>` | Clone the specified sandbox. |
-| create [options] | Create a new sandbox. |
-| start | Start the sandbox client. |
-
-### Create Command
-Use this command to create a new sandbox.
-
-Usage: `create [options]`
-
-Options:
-
-| Syntax | Description |
-| - | - |
-| -r, --rules `<file>` | Rule tree associated with the Akamai property. |
-| -p, --property `<property_id property_name : version>` | Property to include in the sandbox. If version number is not specified, sandbox will use the current production version. |
-| -o, --hostname `<hostname>` | The hostname of your Akamai property (e.g. www.example.com). |
-| -c, --clonable `<boolean>` | Indicates whether sandbox can be replicated by other developers. |
-| -n, --name `<string>` | Name of sandbox. |
-| -H, --requesthostnames `<string>` | Comma-delimited list of request hostnames within the sandbox. |
-| --recipe `<path>` | Path to JSON file that includes customizable sandbox templates. |
-| -h, --help | Display usage information. |
-
-### Update Command
-Use this command to update your sandbox.
-
-Usage: `update [options] [sandbox-identifier]`
- 
-Options:
-
-| Syntax | Description |
-| - | - |
-| -r, --rules `<file>` | Rule tree associated with the Akamai property. |
-| -c, --clonable `<boolean>` | Indicates whether sandbox can be replicated by other developers. |
-| -n, --name `<string>` | Name of sandbox. |
-| -H, --requesthostnames `<string>` | Comma-delimited list of request hostnames within the sandbox. |
-| --recipe `<path>` | Path to JSON file that includes customizable sandbox templates. |
-| -h, --help | Display usage information. |
+  help [command]                                                Displays help information for the given command.
+  install                                                       Downloads and installs the Sandbox Client software.
+  list|ls [options]                                             Lists sandboxes that are available locally.
+  show [sandbox-id]                                             Shows details about the sandbox and JWT expiration date.
+  rules [sandbox-id]                                            Shows a rules tree for the sandbox.
+  use <sandbox-id>                                              Sets a default sandbox for commands requiring [sandbox-id].
+  delete [options] <sandbox-id>                                 Deletes the sandbox.
+  update-property [options] <sandbox-id> <sandbox-property-id>  Updates the sandbox’s property.
+  update [options] [sandbox-id]                                 Updates the sandbox.
+  clone [options] <sandbox-id>                                  Clones the sandbox.
+  create [options]                                              Creates a new sandbox.
+  start [options]                                               Starts the sandbox client.
+  add-property [options] [sandbox-id]                           Adds a property to the sandbox.
+  sync-sandbox [options] <JWT>                                  Syncs a remote sandbox with the local system.
+  rotate-jwt [sandbox-id]                                       Rotates the JWT for the sandbox.
+  add-edgeworker <edgeworker-id> <edgeworker-tarball>           Adds an edgeworker to the default sandbox. Use a positive integer for edgeworker-id.
+  update-edgeworker <edgeworker-id> <edgeworker-tarball>        Updates the edgeworker for the default sandbox.
+  download-edgeworker <edgeworker-id>                           Downloads the edgeworker for the default sandbox.
+  delete-edgeworker [options] <edgeworker-id>                   Deletes the edgeworker for the default sandbox.
+```
 
 ## Customizable Template
 You can use this example "recipe" to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.

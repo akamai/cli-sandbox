@@ -1,32 +1,33 @@
-var EdgeGrid = require('edgegrid');
+const EdgeGrid = require('edgegrid');
+const untildify = require('untildify');
+const path = require('path');
+const fs = require('fs');
 import * as os from 'os';
+import * as cliUtils from './cli-utils';
 
-var findJavaHome = require('find-java-home');
-var path = require('path');
-import * as edgeRcParser from './edgerc-parser';
+const findJavaHome = require('find-java-home');
 
-const _edge = null;
 const edgeRcParams = {
   section: process.env.AKAMAI_EDGERC_SECTION || 'default',
   path: process.env.AKAMAI_EDGERC || path.resolve(os.homedir(), '.edgerc'),
   debug: false
 };
 
-function getEdgeGridSection(section) {
-  var sections = edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
-  return sections.find(s => s.sectionName === section);
-}
-
-function getAllEdgeGridSections() {
-  return edgeRcParser.parseEdgeGridToSectionArray(edgeRcParams.path);
-}
-
 export function getEdgeGrid() {
-  if (_edge != null) {
-    return _edge;
+
+  if (!fs.existsSync(untildify(edgeRcParams.path))) {
+    cliUtils.logAndExit(1, `Could not find .edgerc to authenticate Akamai API calls. Expected at: ${edgeRcParams.path}`);
   }
-  var s = getEdgeGridSection(edgeRcParams.section);
-  return new EdgeGrid(s.clientToken, s.clientSecret, s.accessToken, s.host, edgeRcParams.debug);
+
+  try {
+    return new EdgeGrid({
+      path: untildify(edgeRcParams.path),
+      section: edgeRcParams.section,
+      debug: edgeRcParams.debug
+    });
+  } catch (e) {
+    cliUtils.logAndExit(1, e.message);
+  }
 }
 
 export function setDebugMode(debug: boolean) {
@@ -46,7 +47,7 @@ export function isDebugMode() {
 }
 
 export function getNodeVersion() {
-  return parseInt(process.versions["node"].split('.')[0]);
+  return parseInt(process.versions['node'].split('.')[0]);
 }
 
 export function getJavaHome() {
@@ -63,7 +64,7 @@ export function getJavaHome() {
 }
 
 export async function getJavaExecutablePath() {
-  var home = await getJavaHome();
+  const home = await getJavaHome();
   return path.join(home, '/bin/java');
 }
 
@@ -71,13 +72,13 @@ export async function getJavaVersion() {
   const javaFullPath = await getJavaExecutablePath();
   return new Promise(
     (resolve, reject) => {
-      var spawn = require('child_process').spawn(javaFullPath, ['-version']);
+      const spawn = require('child_process').spawn(javaFullPath, ['-version']);
       spawn.on('error', function (err) {
         reject(err);
       });
       spawn.stderr.on('data', function (data) {
         data = data.toString().split('\n')[0];
-        var javaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+        const javaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
         if (javaVersion != false) {
           // TODO: We have Java installed
           resolve(javaVersion);

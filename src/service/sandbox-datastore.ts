@@ -1,17 +1,17 @@
 import * as fs from 'fs';
 import * as cliUtils from '../utils/cli-utils';
-import {SandboxRecord} from "./sandbox-record";
+import {SandboxRecord} from './sandbox-record';
 
 export class SandboxDatastore {
-  private data: object;
-  private datafile: string;
+  private readonly data: object;
+  private readonly datafile: string;
 
   constructor(datafile: string) {
     this.datafile = datafile;
     if (!fs.existsSync(datafile)) {
       this.data = {};
     } else {
-      var str = fs.readFileSync(datafile).toString();
+      const str = fs.readFileSync(datafile).toString();
       this.data = JSON.parse(str);
     }
   }
@@ -22,7 +22,7 @@ export class SandboxDatastore {
 
   private clearCurrent() {
     let keysLst = Object.keys(this.data);
-    var ds = this;
+    const ds = this;
     keysLst.forEach(k => {
       ds.data[k].current = false;
     });
@@ -30,8 +30,8 @@ export class SandboxDatastore {
 
   private getDataArray(): Array<SandboxRecord> {
     let keysLst = Object.keys(this.data);
-    var ds = this;
-    var r = [];
+    const ds = this;
+    const r = [];
     keysLst.forEach(k => {
       r.push(ds.data[k]);
     });
