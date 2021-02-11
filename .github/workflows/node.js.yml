@@ -23,14 +23,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
+      name: Validate package-lock.json file
+      run: grep resolved package-lock.json | grep -q akamai && echo "package-lock.json contains invalid entries" && exit 1
+      shell: bash --noprofile --norc {0}
+
+    steps:
+    - name: Build using Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: grep resolved package-lock.json | grep -q akamai && echo "package-lock.json contains invalid entries" && exit 1
-      shell: bash {0}
     - run: npm install
     - run: npm run build --if-present
+
+    steps:
+    - name: Run sandbox command
     - run: touch /tmp/test-edgerc
     - run: ./akamai-sandbox --edgerc /tmp/test-edgerc help
       env:
