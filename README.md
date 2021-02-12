@@ -5,8 +5,8 @@ The Sandbox command line interface (CLI) expedites the process of creating an is
 To use this tool you need:
 * [Akamai CLI](https://github.com/akamai/cli) installed. If you have a Mac with brew installed, run this command: `brew install akamai`.
 * An API client that contains both the Sandbox and Property Manager APIs with read-write access. Follow the steps in [Get Started with APIs](https://developer.akamai.com/api/getting-started) to learn how to configure credentials to access the API.
-* Node version 8+
-* Java version 8+
+* Node versions supported: any active LTS, maintenance LTS and current version (according to https://nodejs.org/en/about/releases/ schedule)
+* Java version 8
 
 ## Quick Start
 
