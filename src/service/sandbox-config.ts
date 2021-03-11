@@ -66,33 +66,33 @@ export class SandboxConfig {
 
   private buildNewConfig(origins: Array<string>, passThrough: boolean) {
     const template: string = fs.readFileSync(SandboxConfig.getClientTemplatePath()).toString();
-    const clientConfig = JSON.parse(template);
+    const config = JSON.parse(template);
 
     if (!origins || origins.length == 0) {
-      clientConfig.originMappings.push({
+      config.originMappings.push({
         from: '<ORIGIN HOSTNAME>',
         to: DEFAULT_ORIGIN_TARGET
       });
     } else {
       origins.forEach(o => {
-        clientConfig.originMappings.push({
+        config.originMappings.push({
           from: o,
           to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
         });
       });
     }
-    return clientConfig;
+    return config;
   }
 
   private mergeOrigins(clientConfig: any, origins: Array<string>, passThrough: boolean) {
     if (origins == null || origins.length == 0) {
       return;
     }
-    const inCc = new Set();
-    clientConfig.originMappings.forEach(om => inCc.add(om.from.trim()));
+    const originsInClientConfig = new Set();
+    clientConfig.originMappings.forEach(om => originsInClientConfig.add(om.from.trim()));
 
     origins.forEach(o => {
-      if (!inCc.has(o)) {
+      if (!originsInClientConfig.has(o)) {
         clientConfig.originMappings.push({
           from: o,
           to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
