@@ -1,12 +1,12 @@
 import {SandboxDatastore} from './sandbox-datastore';
 import {SandboxRecord} from './sandbox-record';
+import {SandboxConfig} from './sandbox-config';
 import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 
 const fs = require('fs');
 const unzipper = require('unzipper');
 const path = require('path');
-const appRoot = require('app-root-path');
 const shell = require('shelljs');
 const fsExtra = require('fs-extra');
 const download = require('download');
@@ -39,12 +39,6 @@ if (!fs.existsSync(SANDBOXES_DIR)) {
 
 const datastore = new SandboxDatastore(DATASTORE_FILE_PATH);
 
-const DEFAULT_ORIGIN_TARGET = {
-  secure: false,
-  port: 80,
-  host: '<target hostname>'
-};
-
 export async function downloadClient() {
   console.log('Downloading sandbox client...');
   await download(DOWNLOAD_URL, DOWNLOAD_DIR);
@@ -76,72 +70,21 @@ export function isAlreadyInstalled() {
   return fs.existsSync(JAR_FILE_PATH);
 }
 
-function getClientTemplatePath() {
-  return path.resolve(appRoot.path, 'src/template/client-config.json');
-}
-
-function buildClientConfig(origins: Array<string>, passThrough: boolean) {
-  const template: string = fs.readFileSync(getClientTemplatePath()).toString();
-  const clientConfig = JSON.parse(template);
-
-  if (!origins || origins.length == 0) {
-    clientConfig.originMappings.push({
-      from: '<ORIGIN HOSTNAME>',
-      to: DEFAULT_ORIGIN_TARGET
-    });
-  } else {
-    origins.forEach(o => {
-      clientConfig.originMappings.push({
-        from: o,
-        to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
-      });
-    });
+function createSandboxConfig(jwt: string, name: string, origins: Array<string>, clientConfig, passThrough: boolean) {
+  let config = new SandboxConfig(SANDBOXES_DIR, name);
+  if (clientConfig) {
+    config.useClientConfig(clientConfig);
   }
-  return clientConfig;
-}
-
-function mergeOrigins(clientConfig, origins: Array<string>, passThrough: boolean) {
-  if (origins == null || origins.length == 0) {
-    return;
-  }
-  const inCc = new Set();
-  clientConfig.originMappings.forEach(om => inCc.add(om.from.trim()));
-
-  origins.forEach(o => {
-    if (!inCc.has(o)) {
-      clientConfig.originMappings.push({
-        from: o,
-        to: passThrough ? 'pass-through' : DEFAULT_ORIGIN_TARGET
-      });
-    }
-  })
+  return config.create(jwt, origins, passThrough);
 }
 
 export function registerNewSandbox(sandboxid: string, jwt: string, name: string, origins: Array<string>, clientConfig = null, passThrough: boolean) {
-  const folderName = name;
-  const sandboxDir = path.join(SANDBOXES_DIR, folderName);
-  fs.mkdirSync(sandboxDir);
+  const sandboxConfig = createSandboxConfig(jwt, name, origins, clientConfig, passThrough);
+  const sandboxRecord = new SandboxRecord(sandboxid, name, true, name, jwt);
 
-  let cc: any;
-  if (!clientConfig) {
-    cc = buildClientConfig(origins, passThrough);
-  } else {
-    cc = clientConfig;
-    mergeOrigins(clientConfig, origins, passThrough);
-  }
-  cc.jwt = jwt;
-
-  const generatedConfig = cliUtils.toJsonPretty(cc);
-
-  const configPath = path.join(sandboxDir, '/config.json');
-  fs.writeFileSync(configPath, generatedConfig);
-
-  const record = new SandboxRecord(sandboxid, folderName, true, name, jwt);
-  datastore.save(record);
+  datastore.save(sandboxRecord);
   console.log(`sandbox-id: ${sandboxid} ${name} is now active`);
-  return {
-    configPath
-  }
+  return sandboxConfig;
 }
 
 export function searchLocalSandboxes(str: string) {
@@ -170,14 +113,18 @@ function getCurrentSandboxFolder() {
 }
 
 export function updateJWT(sandboxId: string, newJwt: string) {
-  const rec: SandboxRecord = datastore.getRecord(sandboxId);
-  if (!rec) {
-    cliUtils.logAndExit(1, `Unable to set the new JWT into local configuration for sandbox-id: ${sandboxId}\n` +
-     `The new token: ${newJwt}`);
+  const sandboxRecord: SandboxRecord = datastore.getRecord(sandboxId);
+  if (!sandboxRecord) {
+    cliUtils.logAndExit(1,
+      `Unable to set the new JWT into local configuration for sandbox-id: ${sandboxId}\nThe new token: ${newJwt}`
+    );
     return;
   }
-  rec.jwt = newJwt;
-  datastore.save(rec);
+  sandboxRecord.jwt = newJwt;
+  const sandboxConfig = new SandboxConfig(SANDBOXES_DIR, sandboxRecord.name);
+
+  datastore.save(sandboxRecord);
+  sandboxConfig.updateJwt(newJwt);
 }
 
 export function getSandboxLocalData(sandboxId: string) {
@@ -273,9 +220,17 @@ export async function executeSandboxClient(printLogs) {
 
   shell.exec(cmd, function(exitCode) {
     if (exitCode !== 0) {
-      cliUtils.logAndExit(1, 'Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.');
+      printStartupFailureInfo(springProfiles);
     }
   });
+}
+
+function printStartupFailureInfo(springProfiles: string[]) {
+  if (springProfiles.includes('print-logs')) {
+    cliUtils.logAndExit(1, 'Sandbox Client failed to start.');
+  } else {
+    cliUtils.logAndExit(1, 'Sandbox Client failed to start. Please check logs for more information or start client with --print-logs option.');
+  }
 }
 
 function printStartupInfo(configPath: string, loggingPath: string, loggingFilePath: string, args) {
