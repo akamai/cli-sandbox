@@ -2,6 +2,8 @@ import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 import * as fs from 'fs';
 
+const URLSearchParams = require('url').URLSearchParams;
+
 let accountKey: string = null;
 let accountWide: boolean = false;
 
@@ -20,11 +22,19 @@ function isOkStatus(code) {
   return code >= 200 && code < 300;
 }
 
-function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: string) {
+function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: string, searchParams?: URLSearchParams) {
   const edge = envUtils.getEdgeGrid();
   let path = pth;
+
   if (accountKey) {
-    path += `?accountSwitchKey=${accountKey}`;
+    if (searchParams == null) {
+      searchParams = new URLSearchParams();
+    }
+    searchParams.append('accountSwitchKey', accountKey);
+  }
+
+  if (searchParams) {
+    path += `?${searchParams.toString()}`;
   }
 
   return new Promise<any>(
@@ -49,7 +59,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
         })
       }
 
-      edge.send(function (error, response, body) {
+      edge.send(function(error, response, body) {
         if (error) {
           reject(error);
         } else if (isOkStatus(response.statusCode)) {
@@ -100,10 +110,9 @@ function putTarball(path: string, edgeworkerTarballPath) {
 }
 
 function getJson(path: string) {
-  if (accountWide) {
-    path += `?access=account`;
-  }
-  return sendEdgeRequest(path, 'GET', '', {});
+  const searchParams = accountWide ? new URLSearchParams('access=account') : null;
+
+  return sendEdgeRequest(path, 'GET', '', {}, null, searchParams);
 }
 
 function getTarball(path: string) {
