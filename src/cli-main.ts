@@ -146,19 +146,19 @@ function jwtExpirationDateString(jwtToken) {
 async function showSandboxOverview(sandboxId: string) {
   const localSandbox = sandboxClientManager.getSandboxLocalData(sandboxId);
   if (localSandbox) {
-    cliUtils.logWithBorder('Local sandbox information:');
+    cliUtils.logWithBorder('Local sandbox information');
     console.log('sandbox-id: ' + sandboxId);
     console.log('local directory: ' + localSandbox.sandboxFolder);
     console.log(`JWT expiration: ${jwtExpirationDateString(localSandbox.jwt)}`);
-    console.log(`current: ${localSandbox.isCurrent}\n`);
+    console.log(`default: ${localSandbox.isCurrent}\n`);
   }
   const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
 
-  cliUtils.logWithBorder('Detailed information for the sandbox:');
+  cliUtils.logWithBorder('Detailed information for the sandbox');
 
   console.log(`name: ${sandbox.name}`);
   console.log(`created by: ${sandbox.createdBy}`);
-  console.log(`is clonable: ${sandbox.isClonable}`);
+  console.log(`cloneable: ${sandbox.isClonable}`);
   console.log(`status: ${sandbox.status}\n`);
 
   cliUtils.logWithBorder('Sandbox Properties');
