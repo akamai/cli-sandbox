@@ -39,7 +39,7 @@
                 },
                 "minItems": 1
               },
-              "cpCode": {
+              "cpcode": {
                 "type": "number"
               },
               "hostname": {
