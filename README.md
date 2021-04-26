@@ -129,7 +129,8 @@ You can use this example "recipe" to quickly customize the sandbox to your devel
                 "property":"123456:2",
                 "requestHostnames":[  
                     "localhost2"
-                ]
+                ],
+                "cpcode": 1234
             },
             {  
                 "hostname":"www.example.com",

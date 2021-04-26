@@ -178,20 +178,24 @@ export function createFromRules(papiRules, fromPropertyObj, requestHostnames, na
   return postJson(`${SANDBOX_API_BASE}/sandboxes`, bodyObj).then(r => r.body);
 }
 
-export function addPropertyFromRules(sandboxId: string, requestHostnames, papiRules) {
+export function addPropertyFromRules(sandboxId: string, requestHostnames, cpCode: number, papiRules) {
   const bodyObj = {
+    cpCode: cpCode,
     requestHostnames: requestHostnames,
     createFromRules: papiRules
   };
   return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj).then(r => r.body);
 }
 
-export function addPropertyFromProperty(sandboxId: string, requestHostnames, fromPropertyObj) {
+export function addPropertyFromProperty(sandboxId: string, requestHostnames, cpCode: number, fromPropertyObj) {
   const bodyObj = {
     createFromProperty: fromPropertyObj,
   };
   if (requestHostnames) {
     bodyObj['requestHostnames'] = requestHostnames;
+  }
+  if (cpCode) {
+    bodyObj['cpcode'] = cpCode;
   }
   return postJson(`${SANDBOX_API_BASE}/sandboxes/${sandboxId}/properties`, bodyObj).then(r => r.body);
 }

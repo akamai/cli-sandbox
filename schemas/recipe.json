@@ -39,6 +39,9 @@
                 },
                 "minItems": 1
               },
+              "cpCode": {
+                "type": "number"
+              },
               "hostname": {
                 "type": "string"
               },
