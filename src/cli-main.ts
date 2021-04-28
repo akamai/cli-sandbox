@@ -513,11 +513,11 @@ async function createFromRecipe(recipeFilePath, name, clonable, cpcode, originFr
 
 function createRecipeProperty(rp, sandboxId) {
   if (rp.property) {
-    return addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.cpCode, rp.property);
+    return addPropertyToSandboxFromProperty(sandboxId, rp.requestHostnames, rp.cpcode, rp.property);
   } else if (rp.rulesPath) {
-    return addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames, rp.cpCode);
+    return addPropertyFromRules(sandboxId, rp.rulesPath, rp.requestHostnames, rp.cpcode);
   } else if (rp.hostname) {
-    return addPropertyToSandboxFromHostname(sandboxId, rp.requestHostnames, rp.cpCode, rp.hostname);
+    return addPropertyToSandboxFromHostname(sandboxId, rp.requestHostnames, rp.cpcode, rp.hostname);
   } else {
     cliUtils.logAndExit(1, 'Critical error with recipe property. Define the rulesPath or property.');
   }
