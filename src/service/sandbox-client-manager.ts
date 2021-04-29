@@ -180,11 +180,6 @@ export async function hasSandboxFolder(sandboxName) {
   return files.some(fileItem => fileItem.toLowerCase() === sandboxName.toLowerCase());
 }
 
-
-function versionToNumber(version) {
-  return version.split('.').map(s => parseInt(s)).reduce((acc, value) => 100 * acc + value);
-}
-
 export async function executeSandboxClient(printLogs) {
   const loggingPath = getLogPath();
   const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
@@ -199,14 +194,8 @@ export async function executeSandboxClient(printLogs) {
     `"${await envUtils.getJavaExecutablePath()}"`
   ];
 
-  if (versionToNumber(CONNECTOR_VERSION) >= versionToNumber('1.3.1')) {
-    args.push(`-DLOG_PATH="${loggingPath}"`);
-    args.push(`-DLOGGING_CONFIG_FILE="${LOG_CONFIG_FILE}"`);
-  } else {
-    args.push(`-Dlogging.file.path="${loggingPath}"`);
-    args.push(`-Dlogging.config="${LOG_CONFIG_FILE}"`);
-  }
-
+  args.push(`-DLOG_PATH="${loggingPath}"`);
+  args.push(`-DLOGGING_CONFIG_FILE="${LOG_CONFIG_FILE}"`);
   args.push(`-jar "${JAR_FILE_PATH}"`);
   args.push(`--config="${configPath}"`);
 
