@@ -153,6 +153,9 @@ async function showSandboxOverview(sandboxId: string) {
     console.log(`default: ${localSandbox.isCurrent}\n`);
   }
   const sandbox = await cliUtils.spinner(sandboxSvc.getSandbox(sandboxId));
+  const properties = await cliUtils.spinner(Promise.all(
+    sandbox.properties.map(p => sandboxSvc.getProperty(sandboxId, p.sandboxPropertyId)))
+  );
 
   cliUtils.logWithBorder('Detailed information for the sandbox');
 
@@ -163,8 +166,9 @@ async function showSandboxOverview(sandboxId: string) {
 
   cliUtils.logWithBorder('Sandbox Properties');
 
-  sandbox.properties.forEach(p => {
+  properties.forEach(p => {
     console.log('sandbox-property-id: ' + p.sandboxPropertyId);
+    console.log('cpcode: ' + p.cpcode);
     console.log(`request hostname(s): ${p.requestHostnames.join(', ')}\n`);
   });
 }
