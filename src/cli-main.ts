@@ -356,8 +356,9 @@ function resolveRulesPath(recipeFilePath, rulesPath) {
 }
 
 async function createFromPropertiesRecipe(recipe, cpcode) {
-  const sandboxRecipe = recipe.sandbox;
-  const properties = sandboxRecipe.properties;
+  const cloneable = recipe.sandbox.clonable
+  const sandboxName = recipe.sandbox.name
+  const properties = recipe.sandbox.properties;
 
   const firstProp = properties[0];
   let propForRules;
@@ -372,7 +373,8 @@ async function createFromPropertiesRecipe(recipe, cpcode) {
   }
 
   console.log(`Creating sandbox and property 1 from recipe.`);
-  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, propForRules, sandboxRecipe, cpcode));
+  const r = await cliUtils.spinner(createRecipeSandboxAndProperty(firstProp, propForRules, cloneable, sandboxName,
+    cpcode || firstProp.cpcode));
 
   for (let i = 1; i < properties.length; i++) {
     try {
@@ -527,13 +529,13 @@ function createRecipeProperty(rp, sandboxId) {
   }
 }
 
-function createRecipeSandboxAndProperty(rp, propertyForRules, recipe, cpcode) {
+function createRecipeSandboxAndProperty(rp, propertyForRules, isCloneable, sandboxName, cpcode) {
   if (rp.property) {
-    return createFromProperty(rp.property, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
+    return createFromProperty(rp.property, rp.requestHostnames, isCloneable, sandboxName, cpcode);
   } else if (rp.hostname) {
-    return createFromHostname(rp.hostname, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
+    return createFromHostname(rp.hostname, rp.requestHostnames, isCloneable, sandboxName, cpcode);
   } else if (rp.rulesPath) {
-    return createFromRules(rp.rulesPath, propertyForRules, rp.requestHostnames, recipe.clonable, recipe.name, cpcode);
+    return createFromRules(rp.rulesPath, propertyForRules, rp.requestHostnames, isCloneable, sandboxName, cpcode);
   } else {
     cliUtils.logAndExit(1, 'Critical error with recipe property. Define the rulesPath or property.');
   }
