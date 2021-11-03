@@ -31,7 +31,7 @@
     "untildify": "3.0.3",
     "unzipper": "0.9.3",
     "uuid": "3.3.2",
-    "validator": "10.8.0"
+    "validator": "13.7.0"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.132",
