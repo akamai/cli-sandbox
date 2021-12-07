@@ -122,44 +122,44 @@ You can use this code sample to quickly customize the sandbox to your developmen
 
 ```
 {
-    "sandbox":{
-        "clonable":true,
-        "properties":[
+    "sandbox": {
+        "clonable": true,
+        "properties": [
             {
-                "property":"123456:2",
-                "requestHostnames":[
+                "property": "123456:2",
+                "requestHostnames": [
                     "localhost2"
                 ],
-                "cpcode":1234
+                "cpcode": 1234
             },
             {
-                "hostname":"example.com",
-                "requestHostnames":[
+                "hostname": "example.com",
+                "requestHostnames": [
                     "localhost2"
                 ]
             },
             {
-                "property":"example.sandbox.property.com:1",
-                "rulesPath":"./rules-1.json",
-                "requestHostnames":[
+                "property": "example.sandbox.property.com:1",
+                "rulesPath": "./rules-1.json",
+                "requestHostnames": [
                     "localhost3"
                 ]
             }
         ]
     },
-    "clientConfig":{
-        "sandboxServerInfo":{
-            "secure":false,
-            "port":9550,
-            "host":"127.0.0.1"
+    "clientConfig": {
+        "sandboxServerInfo": {
+            "secure": false,
+            "port": 9550,
+            "host": "127.0.0.1"
         },
-        "originMappings":[
+        "originMappings": [
             {
-                "from":"origin-www.example.com",
-                "to":{
-                    "secure":false,
-                    "port":8080,
-                    "host":"localhost"
+                "from": "origin-www.example.com",
+                "to": {
+                    "secure": false,
+                    "port": 8080,
+                    "host": "localhost"
                 }
             }
         ]
