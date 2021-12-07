@@ -67,14 +67,14 @@ You have two options to test the Sandbox.
 * Run this curl command: `curl --header 'Host: www.example.com' http://127.0.0.1:9550/`
 
 #### Step 5: Validate that your responses are coming from a Sandbox 
-All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. Use the [Developer Toolkit](https://developer.akamai.com/tools/akamai-developer-toolkit-chrome) to validate the presence of the header.
+All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. Use the [Developer Toolkit](https://github.com/akamai/akamai_developer_toolkit) to validate the presence of the header.
 
 #### Debug and report issues
 You are all set, happy debugging! If you experience any issues with Sandbox, raise them as a [github issue](https://github.com/akamai/cli-sandbox/issues). Feel free to create a pull request with the fix or suggestion.
 ___
 
 ## Overview of Commands
-Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://developer.akamai.com/api/core_features/sandbox/v1.html).
+Sandbox CLI enables you to manage sandboxes by calling the [Sandbox API](https://techdocs.akamai.com/sandbox/reference/welcome-to-sandbox-api).
 
 Every command has a built-in help available by using `--help` or `-h`. Alternatively, you can use `akamai sandbox help [command]` 
 
@@ -118,44 +118,45 @@ Commands:
 ```
 
 ## Customizable Template
-You can use this example "recipe" to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.
+You can use this code sample to quickly customize the sandbox to your development environment. Copy the code below and paste it into a text editor.
 
 ```
-{  
-    "sandbox":{  
+{
+    "sandbox":{
         "clonable":true,
-        "properties":[  
-            {  
+        "properties":[
+            {
                 "property":"123456:2",
-                "requestHostnames":[  
+                "requestHostnames":[
                     "localhost2"
                 ],
-                "cpcode": 1234
+                "cpcode":1234
             },
-            {  
-                "hostname":"www.example.com",
-                "requestHostnames":[  
+            {
+                "hostname":"example.com",
+                "requestHostnames":[
                     "localhost2"
                 ]
             },
-            {  
+            {
+                "property":"example.sandbox.property.com:1",
                 "rulesPath":"./rules-1.json",
-                "requestHostnames":[  
+                "requestHostnames":[
                     "localhost3"
                 ]
             }
         ]
     },
-    "clientConfig":{  
-        "sandboxServerInfo":{  
+    "clientConfig":{
+        "sandboxServerInfo":{
             "secure":false,
             "port":9550,
             "host":"127.0.0.1"
         },
-        "originMappings":[  
-            {  
+        "originMappings":[
+            {
                 "from":"origin-www.example.com",
-                "to":{  
+                "to":{
                     "secure":false,
                     "port":8080,
                     "host":"localhost"
@@ -165,9 +166,7 @@ You can use this example "recipe" to quickly customize the sandbox to your devel
     }
 }
 ```
-1. Edit the information according to your development environment and property specifications.
-1. Save the file with a `.json` extension (e.g., `example_recipe.json`)
-1. Run this command on your file `akamai sandbox create --recipe=./example/example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
 
-## Resources
-For more information on Sandbox, refer to the [User Guide](https://learn.akamai.com/en-us/webhelp/sandbox/sandbox-user-guide/).
+1. Edit the information for `sandboxServerInfo` and `originMappings` according to your development environment and property specifications. For more information on which fields to modify, refer to the [User Guide](https://techdocs.akamai.com/sandbox/docs/config-sandbox-client-cli).
+2. Save the file with a `.json` extension (e.g., `example_recipe.json`)
+3. Run this command on your file `akamai sandbox create --recipe=example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
