@@ -169,4 +169,4 @@ You can use this code sample to quickly customize the sandbox to your developmen
 
 1. Edit the information for `sandboxServerInfo` and `originMappings` according to your development environment and property specifications. For more information on which fields to modify, refer to the [User Guide](https://techdocs.akamai.com/sandbox/docs/config-sandbox-client-cli).
 2. Save the file with a `.json` extension (e.g., `example_recipe.json`)
-3. Run this command on your file `akamai sandbox create --recipe=example_recipe.json ` to instantiate the sandbox client according to the defined specifications.
+3. Run this command on your file `akamai sandbox create --recipe=example_recipe.json` to instantiate the sandbox client according to the defined specifications.
