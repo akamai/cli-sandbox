@@ -67,7 +67,7 @@ You have two options to test the Sandbox.
 * Run this curl command: `curl --header 'Host: www.example.com' http://127.0.0.1:9550/`
 
 #### Step 5: Validate that your responses are coming from a Sandbox 
-All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. Use the [Developer Toolkit](https://github.com/akamai/akamai_developer_toolkit) to validate the presence of the header.
+All Sandbox traffic is tagged with the response header `X-Akamai-Sandbox: true`. You can use e.g. the [Developer Toolkit](https://github.com/akamai/akamai_developer_toolkit) to validate the presence of the header, Network Monitor in any browser or similar tools that display HTTP headers.
 
 #### Debug and report issues
 You are all set, happy debugging! If you experience any issues with Sandbox, raise them as a [github issue](https://github.com/akamai/cli-sandbox/issues). Feel free to create a pull request with the fix or suggestion.
