@@ -27,7 +27,7 @@
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.21",
     "npm": "^6.14.11",
-    "shelljs": "^0.8.4",
+    "shelljs": "^0.8.5",
     "untildify": "3.0.3",
     "unzipper": "0.9.3",
     "uuid": "3.3.2",
