@@ -6,7 +6,7 @@ To use this tool you need:
 * [Akamai CLI](https://github.com/akamai/cli) installed. If you have a Mac with brew installed, run this command: `brew install akamai`.
 * An API client that contains both the Sandbox and Property Manager APIs with read-write access. Follow the steps in [Get Started with APIs](https://developer.akamai.com/api/getting-started) to learn how to configure credentials to access the API.
 * Node versions supported: any active LTS, maintenance LTS and current version (according to [nodejs schedule](https://nodejs.org/en/about/releases/)), currently: 10.x, 12.x, 14.x and 15.x
-* A supported Java version, currently 8, 11, and 15.
+* A supported Java version, currently 8, 11, 15 and 17.
 
 ## Quick Start
 
