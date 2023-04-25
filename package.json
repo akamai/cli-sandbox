@@ -14,7 +14,7 @@
     "sandbox": "./akamai-sandbox"
   },
   "engines": {
-    "node": ">=14 <=19",
+    "node": ">=14 <=20",
     "npm": ">=8 <=9"
   },
   "dependencies": {
