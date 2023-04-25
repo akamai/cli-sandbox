@@ -67,6 +67,6 @@ export function dateToString(date){
     hour: 'numeric', minute: 'numeric',
     timeZone: 'UTC',
     timeZoneName: 'short'
-  };
+  } as const;
   return new Intl.DateTimeFormat('en-US', options).format(date)
 }
