@@ -1,6 +1,6 @@
 {
   "name": "akamai-sandbox-cli",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A tool that makes it easier to manage Akamai Sandboxes. Call the Sandbox API from the command line.",
   "repository": "https://github.com/akamai/cli-sandbox",
   "license": "Apache-2.0",
