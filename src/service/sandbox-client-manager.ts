@@ -5,7 +5,7 @@ import * as envUtils from '../utils/env-utils';
 import * as cliUtils from '../utils/cli-utils';
 
 const fs = require('fs');
-const unzipper = require('unzipper');
+const decompress = require('decompress');
 const path = require('path');
 const shell = require('shelljs');
 const fsExtra = require('fs-extra');
@@ -52,18 +52,9 @@ export async function downloadClient() {
 }
 
 function unzipClient() {
-  return new Promise(
-    (resolve, reject) => {
-      fs.createReadStream(CONNECTOR_DOWNLOAD_LOCATION)
-        .pipe(unzipper.Extract({path: SANDBOX_CLI_HOME}))
-        .on('finish', function(err) {
-          if (err) {
-            reject(err);
-          } else {
-            resolve("ok");
-          }
-        });
-    });
+  return decompress(CONNECTOR_DOWNLOAD_LOCATION, SANDBOX_CLI_HOME,  {
+    filter: file =>  !file.path.endsWith('/') // skip listing directories: https://github.com/kevva/decompress/issues/46
+  });
 }
 
 export function isAlreadyInstalled() {
