@@ -31,7 +31,7 @@
     "jsonschema": "1.4.1",
     "jwt-decode": "2.2.0",
     "lodash": "4.17.21",
-    "npm": "9.6.5",
+    "npm": "10.5.2",
     "shelljs": "0.8.5",
     "untildify": "3.0.3",
     "uuid": "3.4.0",
