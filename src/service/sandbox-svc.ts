@@ -36,19 +36,19 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
   if (searchParams) {
     path += `?${searchParams.toString()}`;
   }
+  headers = {
+    ...headers,
+    'User-Agent': 'sandbox-cli'
+  }
 
   return new Promise<any>(
     (resolve, reject) => {
       if (filePath) {
-        let formData = {
-          tarballfile: fs.createReadStream(filePath)
-        }
         edge.auth({
           path,
           method,
           headers,
-          body,
-          formData
+          body: fs.readFileSync(filePath),
         })
       } else {
         edge.auth({
@@ -62,7 +62,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
       edge.send(function(error, response, body) {
         if (error) {
           reject(error);
-        } else if (isOkStatus(response.statusCode)) {
+        } else if (isOkStatus(response.status)) {
           const obj: any = {
             response,
             body: !!body ? parseIfJSON(body) : undefined
@@ -75,7 +75,7 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
             errorObj.method = method
             reject(cliUtils.toJsonPretty(errorObj));
           } catch (ex) {
-            cliUtils.logError(`got error code: ${response.statusCode} calling ${method} ${path}\n${body}`);
+            cliUtils.logError(`got error code: ${response.status} calling ${method} ${path}\n${body}`);
             reject(body);
           }
         }

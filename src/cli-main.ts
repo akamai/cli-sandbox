@@ -6,7 +6,7 @@ import * as cliUtils from './utils/cli-utils';
 import * as sandboxClientManager from './service/sandbox-client-manager';
 import * as sandboxSvc from './service/sandbox-svc'
 
-const uuidv1 = require('uuid/v1');
+const uuidv1 = require('uuid').v1;
 const jwtDecode = require('jwt-decode');
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;

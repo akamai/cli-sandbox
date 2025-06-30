@@ -1,4 +1,4 @@
-const EdgeGrid = require('edgegrid');
+const EdgeGrid = require('akamai-edgegrid');
 const untildify = require('untildify');
 const path = require('path');
 const fs = require('fs');
@@ -51,11 +51,11 @@ export function getNodeVersion() {
 }
 
 export function getJavaHome() {
-  return new Promise(
+  return new Promise<string>(
     (resolve, reject) => {
       findJavaHome(function (err, home) {
         if (err) {
-          reject('could not find Java. Please set JAVA_HOME');
+          reject(new Error('could not find Java. Please set JAVA_HOME'));
         } else {
           resolve(home);
         }
