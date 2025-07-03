@@ -1,8 +1,8 @@
-import * as envUtils from '../utils/env-utils';
-import * as cliUtils from '../utils/cli-utils';
+import * as envUtils from '../utils/env-utils.js';
+import * as cliUtils from '../utils/cli-utils.js';
 import * as fs from 'fs';
 
-const URLSearchParams = require('url').URLSearchParams;
+import { URLSearchParams } from "url";
 
 let accountKey: string = null;
 let accountWide: boolean = false;

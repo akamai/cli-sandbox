@@ -1,11 +1,12 @@
-const EdgeGrid = require('akamai-edgegrid');
-const untildify = require('untildify');
-const path = require('path');
-const fs = require('fs');
+import EdgeGrid from "akamai-edgegrid";
 import * as os from 'os';
-import * as cliUtils from './cli-utils';
+import * as cliUtils from './cli-utils.js';
+import untildify from "untildify";
+import path from "path";
+import fs from "fs";
+import findJavaHome from "find-java-home";
 
-const findJavaHome = require('find-java-home');
+import { spawn } from "child_process";
 
 const edgeRcParams = {
   section: process.env.AKAMAI_EDGERC_SECTION || 'default',
@@ -72,11 +73,11 @@ export async function getJavaVersion() {
   const javaFullPath = await getJavaExecutablePath();
   return new Promise(
     (resolve, reject) => {
-      const spawn = require('child_process').spawn(javaFullPath, ['-version']);
-      spawn.on('error', function (err) {
+      const child = spawn(javaFullPath, ['-version']);
+      child.on('error', function (err) {
         reject(err);
       });
-      spawn.stderr.on('data', function (data) {
+      child.stderr.on('data', function (data) {
         data = data.toString().split('\n')[0];
         const javaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
         if (javaVersion != false) {

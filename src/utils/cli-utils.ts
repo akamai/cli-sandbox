@@ -1,5 +1,5 @@
-const inquirer = require('inquirer');
-const Spinner = require('cli-spinner').Spinner;
+import inquirer from "inquirer";
+import { Spinner } from "cli-spinner";
 
 export function logWithBorder(str, type = 'log') {
   const t: string = `--- ${str} ---`;

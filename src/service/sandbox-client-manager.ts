@@ -1,16 +1,16 @@
-import {SandboxDatastore} from './sandbox-datastore';
-import {SandboxRecord} from './sandbox-record';
-import {SandboxConfig} from './sandbox-config';
-import * as envUtils from '../utils/env-utils';
-import * as cliUtils from '../utils/cli-utils';
+import {SandboxDatastore} from './sandbox-datastore.js';
+import {SandboxRecord} from './sandbox-record.js';
+import {SandboxConfig} from './sandbox-config.js';
+import * as envUtils from '../utils/env-utils.js';
+import * as cliUtils from '../utils/cli-utils.js';
 
-const fs = require('fs');
-const decompress = require('decompress');
-const path = require('path');
-const shell = require('shelljs');
-const fsExtra = require('fs-extra');
-const got = require('got');
-const pipeline = require('stream').pipeline;
+import fs from "fs";
+import decompress from "decompress";
+import path from "path";
+import shell from "shelljs";
+import fsExtra from "fs-extra";
+import got from "got";
+import { pipeline } from "stream/promises";
 
 const CONNECTOR_VERSION = '1.5.0';
 const DOWNLOAD_PATH: string = `https://github.com/akamai/sandbox-client/releases/download/${CONNECTOR_VERSION}/`;
