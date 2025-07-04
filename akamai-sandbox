@@ -1,3 +1,6 @@
 #!/usr/bin/env node
+
+// Running this file requires the AKAMAI_CLI_CACHE_PATH environment variable to be set to a valid path. (e.g. ~/.akamai-cli/cache/)
+
 // stub file to kick off compiled app
-require('./bin/cli-main.js');
+import "./bin/src/cli-main.js";

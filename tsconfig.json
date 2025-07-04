@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
     "esModuleInterop": true,
     "target": "es6",
     "noImplicitAny": false,
-    "moduleResolution": "node",
     "sourceMap": true,
     "outDir": "bin",
     "baseUrl": ".",

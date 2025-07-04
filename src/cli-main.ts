@@ -1,13 +1,20 @@
 #!/usr/bin/env node
 import * as fs from 'fs';
 import * as path from 'path';
-import * as envUtils from './utils/env-utils';
-import * as cliUtils from './utils/cli-utils';
-import * as sandboxClientManager from './service/sandbox-client-manager';
-import * as sandboxSvc from './service/sandbox-svc'
+import * as envUtils from './utils/env-utils.js';
+import * as cliUtils from './utils/cli-utils.js';
+import * as sandboxClientManager from './service/sandbox-client-manager.js';
+import * as sandboxSvc from './service/sandbox-svc.js'
 
-const uuidv1 = require('uuid/v1');
-const jwtDecode = require('jwt-decode');
+import { v1 as uuidv1 } from "uuid";
+import { jwtDecode } from "jwt-decode";
+import validator from "validator";
+import pkginfo from '../package.json' with { type: 'json' };
+import Table from "easy-table";
+import { Validator } from "jsonschema";
+import recipeFileSchema from "../schemas/recipe.json" with {type: 'json'};
+import clientConfigSchema from "../schemas/client-config.json" with {type: 'json'};
+import { Command } from 'commander';
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
 
@@ -19,19 +26,10 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
   cliUtils.logAndExit(1, `AKAMAI_CLI_CACHE_PATH is set to ${CLI_CACHE_PATH} but this directory does not exist.`);
 }
 
-if (envUtils.getNodeVersion() < 8) {
-  cliUtils.logAndExit(1, 'The Akamai Sandbox CLI requires Node 8 or later.');
+if (envUtils.getNodeVersion() < 20) {
+  cliUtils.logAndExit(1, 'The Akamai Sandbox CLI requires Node 20 or later.');
 }
-
-require('util');
-const validator = require('validator');
-const pkginfo = require('../package.json');
-const Table = require('easy-table')
-const Validator = require('jsonschema').Validator;
 const jsonSchemaValidator = new Validator();
-const recipeFileSchema = require('../schemas/recipe.json');
-const clientConfigSchema = require('../schemas/client-config.json');
-
 jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
 
 const OriginMapping = {
@@ -602,7 +600,7 @@ async function shouldPassThrough(originFrom: string) {
 async function downloadClientIfNecessary() {
   try {
     if (!sandboxClientManager.isAlreadyInstalled()) {
-      console.log('no sandbox client installed. Installing sandbox client...');
+      console.log('No Sandbox Client installed. Installing sandbox client...');
       await sandboxClientManager.downloadClient();
     }
   } catch (e) {
@@ -695,7 +693,7 @@ function helpExitOnNoArgs(cmd) {
   }
 }
 
-const program = require('commander')
+const program = new Command()
   .version(pkginfo.version, '-V, --version', 'Output the current version.')
   .helpOption('-h, --help', 'Output usage information.')
 

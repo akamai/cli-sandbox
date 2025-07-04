@@ -1,8 +1,8 @@
-import * as cliUtils from '../utils/cli-utils';
+import * as cliUtils from '../utils/cli-utils.js';
 
-const fs = require('fs');
-const path = require('path');
-const appRoot = require('app-root-path');
+import fs from "fs";
+import path from "path";
+import appRoot from "app-root-path";
 
 const DEFAULT_ORIGIN_TARGET = {
   secure: false,

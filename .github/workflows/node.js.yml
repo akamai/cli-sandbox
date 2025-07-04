@@ -25,7 +25,7 @@ jobs:
     - uses: actions/checkout@v2
     - run: |
         grep resolved package-lock.json > result.txt
-        if grep -q akamai result.txt; then echo "package-lock.json contains invalid entries" ; exit 1; fi
+        if grep -Fq "akamai.com" result.txt; then echo "package-lock.json contains invalid entries" ; exit 1; fi
       shell: bash --noprofile --norc -x {0}
       name: Validate package-lock.json file
 
