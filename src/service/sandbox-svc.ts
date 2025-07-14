@@ -17,11 +17,6 @@ export function setAccountWide(value: boolean) {
   accountWide = value;
 }
 
-
-function isOkStatus(code) {
-  return code >= 200 && code < 300;
-}
-
 function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: string, searchParams?: URLSearchParams) {
   const edge = envUtils.getEdgeGrid();
   let path = pth;
@@ -61,23 +56,26 @@ function sendEdgeRequest(pth: string, method: string, body, headers, filePath?: 
 
       edge.send(function(error, response, body) {
         if (error) {
-          reject(error);
-        } else if (isOkStatus(response.status)) {
-          const obj: any = {
+          if (error.response) {
+            // The request was made and the server responded with a status code
+            // that falls out of the range of 2xx
+            const errorObj = {
+              path,
+              method,
+            }
+            Object.assign(errorObj, error.response.data);
+            reject(cliUtils.toJsonPretty(errorObj))
+          } else {
+            // Something happened in setting up the request that triggered an Error
+            cliUtils.logError(`got error code: ${error.status} calling ${method} ${path}\n${error.message}`);
+            reject(error);
+          }
+        } else {
+          // The request was successful
+          resolve({
             response,
             body: !!body ? parseIfJSON(body) : undefined
-          };
-          resolve(obj);
-        } else {
-          try {
-            const errorObj = JSON.parse(body);
-            errorObj.path = path
-            errorObj.method = method
-            reject(cliUtils.toJsonPretty(errorObj));
-          } catch (ex) {
-            cliUtils.logError(`got error code: ${response.status} calling ${method} ${path}\n${body}`);
-            reject(body);
-          }
+          });
         }
       });
     });
