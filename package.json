@@ -12,9 +12,8 @@
     "copy-json": "cp -r schemas package.json ./bin",
     "postinstall": "npm run build"
   },
-  "main": "./akamai-sandbox",
   "bin": {
-    "sandbox": "./akamai-sandbox"
+    "sandbox": "./akamai-sandbox.js"
   },
   "engines": {
     "node": ">=20 <=24",
