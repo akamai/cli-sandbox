@@ -58,7 +58,7 @@ export async function spinner(func, userMsg: string = '') {
 }
 
 export function toJsonPretty(obj) {
-  return JSON.stringify(obj, undefined, 2);
+  return JSON.stringify(obj, Object.keys(obj).sort(), 2);
 }
 
 export function dateToString(date){

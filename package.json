@@ -6,9 +6,10 @@
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
-    "build": "npm run clean && npm run build-ts",
+    "build": "npm run clean && npm run build-ts && npm run copy-json",
     "clean": "rm -rf ./bin",
     "build-ts": "tsc",
+    "copy-json": "cp -r schemas package.json ./bin",
     "postinstall": "npm run build"
   },
   "main": "./akamai-sandbox",
