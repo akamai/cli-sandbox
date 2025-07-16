@@ -58,7 +58,26 @@ export async function spinner(func, userMsg: string = '') {
 }
 
 export function toJsonPretty(obj) {
-  return JSON.stringify(obj, Object.keys(obj).sort(), 2);
+  return JSON.stringify(obj, undefined, 2);
+}
+
+export function toJsonPrettySorted(obj) {
+  return JSON.stringify(sortKeys(obj), undefined, 2);
+}
+
+function sortKeys(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(sortKeys);
+  } else if (obj !== null && typeof obj === 'object') {
+    return Object.keys(obj)
+      .sort()
+      .reduce((result: any, key) => {
+        result[key] = sortKeys(obj[key]);
+        return result;
+      }, {});
+  } else {
+    return obj;
+  }
 }
 
 export function dateToString(date){
