@@ -9,11 +9,8 @@ import * as sandboxSvc from './service/sandbox-svc.js'
 import { v1 as uuidv1 } from "uuid";
 import { jwtDecode } from "jwt-decode";
 import validator from "validator";
-import pkginfo from '../package.json' with { type: 'json' };
 import Table from "easy-table";
 import { Validator } from "jsonschema";
-import recipeFileSchema from "../schemas/recipe.json" with {type: 'json'};
-import clientConfigSchema from "../schemas/client-config.json" with {type: 'json'};
 import { Command } from 'commander';
 
 const CLI_CACHE_PATH = process.env.AKAMAI_CLI_CACHE_PATH;
@@ -29,6 +26,10 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
 if (envUtils.getNodeVersion() < 20) {
   cliUtils.logAndExit(1, 'The Akamai Sandbox CLI requires Node 20 or later.');
 }
+
+const pkginfo = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
+const recipeFileSchema = JSON.parse(fs.readFileSync("./schemas/recipe.json", 'utf-8'));
+const clientConfigSchema = JSON.parse(fs.readFileSync("./schemas/client-config.json", 'utf-8'));
 const jsonSchemaValidator = new Validator();
 jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
 
@@ -639,7 +640,7 @@ async function addOrUpdateEdgeWorker(edgeworkerId, edgeworkerTarballPath, action
     let buffer = fs.readFileSync(edgeworkerTarballPath);
     buffer.toString('hex');
     await pushEdgeWorkerToSandbox(sandboxId, edgeworkerId, edgeworkerTarballPath, action);
-    console.log('done!');
+    console.log('Done!');
   } catch (e) {
     handleException(e);
   }
@@ -839,6 +840,7 @@ program
       await cliUtils.spinner(sandboxSvc.deleteSandbox(sandboxId), progressMsg);
 
       sandboxClientManager.flushLocalSandbox(sandboxId);
+      console.log(`Successfully deleted sandbox with id: ${sandboxId}`);
     } catch (e) {
       handleException(e);
     }
@@ -1049,6 +1051,7 @@ program
       const hostnames = hostnamesCsv ? parseHostnameCsv(hostnamesCsv) : undefined;
 
       await addPropertyToSandbox(sandboxId, propertySpecifier, papiFilePath, hostnameSpecifier, hostnames, cpCode);
+      console.log(`Successfully added property to sandbox-id: ${sandboxId}`)
     } catch (e) {
       handleException(e);
     }
@@ -1179,7 +1182,7 @@ program
         cliUtils.logAndExit(1, 'Unable to determine sandbox-id');
       }
       await deleteEdgeWorkerFromSandbox(sandboxId, edgeworkerId);
-      console.log('done!');
+      console.log('Done!');
 
     } catch (e) {
       handleException(e);
