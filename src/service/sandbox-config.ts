@@ -63,7 +63,7 @@ export class SandboxConfig {
   }
 
   private buildNewConfig(origins: Array<string>, passThrough: boolean) {
-    const config = cliUtils.readJsonFileRelativeToAppRoot("template/client-config.json")
+    const config = cliUtils.readJsonFileRelativeToAppRoot("bin/template/client-config.json")
 
     if (!origins || origins.length == 0) {
       config.originMappings.push({

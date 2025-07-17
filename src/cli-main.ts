@@ -26,9 +26,9 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
 if (envUtils.getNodeVersion() < 20) {
   cliUtils.logAndExit(1, 'The Akamai Sandbox CLI requires Node 20 or later.');
 }
-const pkginfo = cliUtils.readJsonFileRelativeToAppRoot("package.json");
-const recipeFileSchema = cliUtils.readJsonFileRelativeToAppRoot("schemas/recipe.json");
-const clientConfigSchema = cliUtils.readJsonFileRelativeToAppRoot("schemas/client-config.json");
+const pkginfo = cliUtils.readJsonFileRelativeToAppRoot("bin/package.json");
+const recipeFileSchema = cliUtils.readJsonFileRelativeToAppRoot("bin/schemas/recipe.json");
+const clientConfigSchema = cliUtils.readJsonFileRelativeToAppRoot("bin/schemas/client-config.json");
 
 const jsonSchemaValidator = new Validator();
 jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
