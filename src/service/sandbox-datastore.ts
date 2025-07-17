@@ -11,8 +11,7 @@ export class SandboxDatastore {
     if (!fs.existsSync(datafile)) {
       this.data = {};
     } else {
-      const str = fs.readFileSync(datafile).toString();
-      this.data = JSON.parse(str);
+      this.data = JSON.parse(fs.readFileSync(datafile, 'utf-8'));
     }
   }
 

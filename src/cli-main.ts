@@ -26,10 +26,10 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
 if (envUtils.getNodeVersion() < 20) {
   cliUtils.logAndExit(1, 'The Akamai Sandbox CLI requires Node 20 or later.');
 }
+const pkginfo = cliUtils.readJsonFileRelativeToAppRoot("bin/package.json");
+const recipeFileSchema = cliUtils.readJsonFileRelativeToAppRoot("bin/schemas/recipe.json");
+const clientConfigSchema = cliUtils.readJsonFileRelativeToAppRoot("bin/schemas/client-config.json");
 
-const pkginfo = JSON.parse(fs.readFileSync('./package.json', 'utf-8'));
-const recipeFileSchema = JSON.parse(fs.readFileSync("./schemas/recipe.json", 'utf-8'));
-const clientConfigSchema = JSON.parse(fs.readFileSync("./schemas/client-config.json", 'utf-8'));
 const jsonSchemaValidator = new Validator();
 jsonSchemaValidator.addSchema(clientConfigSchema, '#clientConfig');
 
@@ -40,11 +40,6 @@ const OriginMapping = {
 
 function validateSchema(json) {
   return jsonSchemaValidator.validate(json, recipeFileSchema);
-}
-
-function readFileAsString(path) {
-  const data = fs.readFileSync(path);
-  return data.toString();
 }
 
 function showLocalSandboxes() {
@@ -251,7 +246,7 @@ async function updateProperty(sandboxId, sandboxPropertyId, requestHostnames, cp
 
 function getJsonFromFile(papiFilePath) {
   try {
-    return JSON.parse(readFileAsString(papiFilePath));
+    return JSON.parse(fs.readFileSync(papiFilePath, 'utf-8'));
   } catch (ex) {
     cliUtils.logError('JSON file is invalid.' + ex);
     throw ex;

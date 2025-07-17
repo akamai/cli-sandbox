@@ -9,7 +9,7 @@
     "build": "npm run clean && npm run build-ts && npm run copy-json",
     "clean": "rm -rf ./bin",
     "build-ts": "tsc",
-    "copy-json": "cp -r schemas package.json ./bin",
+    "copy-json": "cp -r schemas src/template package.json ./bin",
     "postinstall": "npm run build"
   },
   "bin": {
