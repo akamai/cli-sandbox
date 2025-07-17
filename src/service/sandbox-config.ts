@@ -2,7 +2,6 @@ import * as cliUtils from '../utils/cli-utils.js';
 
 import fs from "fs";
 import path from "path";
-import appRoot from "app-root-path";
 
 const DEFAULT_ORIGIN_TARGET = {
   secure: false,
@@ -59,14 +58,12 @@ export class SandboxConfig {
     if (!fs.existsSync(this.configPath)) {
       cliUtils.logAndExit(1, `Unable to read config: ${this.configPath}. File does not exist or is not readable.`);
     } else {
-      const config = fs.readFileSync(this.configPath).toString();
-      return JSON.parse(config);
+      return JSON.parse(fs.readFileSync(this.configPath, 'utf-8'));
     }
   }
 
   private buildNewConfig(origins: Array<string>, passThrough: boolean) {
-    const template: string = fs.readFileSync(SandboxConfig.getClientTemplatePath()).toString();
-    const config = JSON.parse(template);
+    const config = cliUtils.readJsonFileRelativeToAppRoot("template/client-config.json")
 
     if (!origins || origins.length == 0) {
       config.originMappings.push({
@@ -103,7 +100,4 @@ export class SandboxConfig {
     return clientConfig;
   }
 
-  private static getClientTemplatePath() {
-    return path.resolve(appRoot.path, 'src/template/client-config.json');
-  }
 }

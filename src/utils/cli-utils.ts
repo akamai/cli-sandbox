@@ -1,5 +1,8 @@
 import inquirer from "inquirer";
 import { Spinner } from "cli-spinner";
+import appRoot from "app-root-path";
+import path from "path";
+import fs from "fs";
 
 export function logWithBorder(str, type = 'log') {
   const t: string = `--- ${str} ---`;
@@ -26,6 +29,10 @@ export function logAndExit(exitCode: number, msg: string) {
     logError(msg);
   }
   process.exit(exitCode);
+}
+
+export function readJsonFileRelativeToAppRoot(filePath: string) {
+  return JSON.parse(fs.readFileSync(path.join(appRoot.path, filePath), 'utf-8'));
 }
 
 export function logError(msg: string) {
