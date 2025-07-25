@@ -43,5 +43,8 @@
     "@types/node": "22.14.0",
     "@types/request": "2.48.12",
     "typescript": "5.8.3"
+  },
+  "overrides": {
+    "form-data": "^4.0.4"
   }
 }
