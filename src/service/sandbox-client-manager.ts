@@ -15,7 +15,6 @@ import { pipeline } from "stream/promises";
 const CONNECTOR_VERSION = '1.5.0';
 const DOWNLOAD_PATH: string = `https://github.com/akamai/sandbox-client/releases/download/${CONNECTOR_VERSION}/`;
 const DOWNLOAD_FILE: string = `sandbox-client-${CONNECTOR_VERSION}-RELEASE-default.zip`;
-const DOWNLOAD_URL = DOWNLOAD_PATH + DOWNLOAD_FILE;
 const CONNECTOR_FOLDER_NAME = `sandbox-client-${CONNECTOR_VERSION}-RELEASE`;
 const JAR_FILE_NAME = `sandbox-client-${CONNECTOR_VERSION}-RELEASE.jar`;
 
@@ -28,7 +27,7 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
   cliUtils.logAndExit(1, `AKAMAI_CLI_CACHE_PATH is set to ${CLI_CACHE_PATH} but this directory does not exist.`);
 }
 const SANDBOX_CLI_HOME = path.join(CLI_CACHE_PATH, '/sandbox-cli/');
-const DOWNLOAD_DIR = path.join(CLI_CACHE_PATH, '/sandbox-cli/downloads/');
+const DOWNLOAD_DIR = path.join(SANDBOX_CLI_HOME, '/downloads/');
 const SANDBOXES_DIR = path.join(SANDBOX_CLI_HOME, '/sandboxes/');
 const CONNECTOR_DOWNLOAD_LOCATION = path.join(DOWNLOAD_DIR, DOWNLOAD_FILE);
 const CLIENT_INSTALL_PATH = path.join(SANDBOX_CLI_HOME, CONNECTOR_FOLDER_NAME);
@@ -37,11 +36,11 @@ const JAR_FILE_PATH = path.join(CLIENT_INSTALL_PATH, path.join('/lib', JAR_FILE_
 const LOG_CONFIG_FILE = path.join(CLIENT_INSTALL_PATH, '/conf/logback.xml');
 const DATASTORE_FILE_PATH = path.join(SANDBOX_CLI_HOME + '.datastore');
 
-if (!fs.existsSync(SANDBOX_CLI_HOME)) {
-  fs.mkdirSync(SANDBOX_CLI_HOME);
+if (!fs.existsSync(DOWNLOAD_DIR)) {
+  fs.mkdirSync(DOWNLOAD_DIR, { recursive: true });
 }
 if (!fs.existsSync(SANDBOXES_DIR)) {
-  fs.mkdirSync(SANDBOXES_DIR);
+  fs.mkdirSync(SANDBOXES_DIR, { recursive: true });
 }
 
 const datastore = new SandboxDatastore(DATASTORE_FILE_PATH);
@@ -49,7 +48,7 @@ const datastore = new SandboxDatastore(DATASTORE_FILE_PATH);
 export async function downloadClient() {
   console.log('Downloading sandbox client...');
   try{
-    await pipeline(got.stream(DOWNLOAD_URL), fs.createWriteStream(DOWNLOAD_DIR + DOWNLOAD_FILE));
+    await pipeline(got.stream(DOWNLOAD_PATH + DOWNLOAD_FILE), fs.createWriteStream(DOWNLOAD_DIR + DOWNLOAD_FILE));
     if (!fs.existsSync(CONNECTOR_DOWNLOAD_LOCATION)) {
       cliUtils.logAndExit(1, 'Sandbox Client download failed for unknown reason!!')
     }
