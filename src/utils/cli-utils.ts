@@ -22,7 +22,7 @@ function log(txt, type = 'log') {
   }
 }
 
-export function logAndExit(exitCode: number, msg: string) {
+export function logAndExit(exitCode: number, msg: string): never {
   if (exitCode === 0) {
     console.log(msg);
   } else {

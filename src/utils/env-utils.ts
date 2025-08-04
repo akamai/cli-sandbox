@@ -27,7 +27,8 @@ export function getEdgeGrid() {
       debug: edgeRcParams.debug
     });
   } catch (e) {
-    cliUtils.logAndExit(1, e.message);
+    const message = e instanceof Error ? e.message : String(e);
+    cliUtils.logAndExit(1, message);
   }
 }
 

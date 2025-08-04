@@ -30,7 +30,7 @@ export class SandboxDatastore {
   private getDataArray(): Array<SandboxRecord> {
     let keysLst = Object.keys(this.data);
     const ds = this;
-    const r = [];
+    const r:SandboxRecord[] = [];
     keysLst.forEach(k => {
       r.push(ds.data[k]);
     });
