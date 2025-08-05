@@ -120,8 +120,7 @@ export async function downloadClient() {
     version = data.tag_name; // e.g. "1.6.0"
     const asset = data.assets.find((a: any) => a.name.endsWith('-default.zip'));
     if (!asset) {
-      cliUtils.logAndExit(1, `Failed to fetch sandbox-client release info from GitHub!\n
-      'No matching ZIP asset found in latest release'`);
+      cliUtils.logAndExit(1, `Failed to fetch sandbox-client release info from GitHub!\nNo matching ZIP asset found in latest release'`);
     }
 
     zipUrl = asset.browser_download_url;
@@ -279,7 +278,7 @@ export async function executeSandboxClient(printLogs) {
   const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
   const configPath = path.join(getCurrentSandboxFolder(), 'config.json');
   const latestJar = (await findLatestJar())!;
-  const loggingConfigPath = path.join(latestJar.path, '..', '..', 'conf', 'logback.xml');
+  const loggingConfigPath = path.join(path.dirname(path.dirname(latestJar.path)), 'conf', 'logback.xml');
 
   const springProfiles:string[] = [];
   if (printLogs) {
