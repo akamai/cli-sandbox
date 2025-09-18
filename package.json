@@ -20,7 +20,7 @@
     "npm": ">=9 <=11"
   },
   "dependencies": {
-    "akamai-edgegrid": "3.5.3",
+    "akamai-edgegrid": "3.5.4",
     "app-root-path": "3.1.0",
     "cli-spinner": "0.2.10",
     "commander": "4.1.1",
