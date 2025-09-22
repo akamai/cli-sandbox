@@ -188,7 +188,7 @@ function getLocalSandboxForIdentifier(identifier: string, failOnNoResult = true)
   }
 }
 
-function getSandboxId(arg: string): string {
+function getSandboxId(arg?: string): string {
   if (arg) {
     return getSandboxIdFromIdentifier(arg);
   }
@@ -978,13 +978,15 @@ program
   .action(async function (options) {
     try {
       if (sandboxClientManager.getAllSandboxes().length == 0) {
-        console.log('there are no sandboxes configured');
-      } else {
-        if (!await isSandboxClientInstalled()) {
-          await sandboxClientManager.downloadClientIfNecessary();
-        }
-        await sandboxClientManager.executeSandboxClient(!!options.printLogs);
+        cliUtils.logAndExit(1, 'There are no sandboxes configured');
       }
+      if (!sandboxClientManager.getCurrentSandboxId()) {
+        cliUtils.logAndExit(1, NO_DEFAULT_SANDBOX_ERROR_MSG);
+      }
+      if (!await isSandboxClientInstalled()) {
+        await sandboxClientManager.downloadClientIfNecessary();
+      }
+      await sandboxClientManager.executeSandboxClient(!!options.printLogs);
     } catch (e) {
       handleException(e);
     }
