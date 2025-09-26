@@ -4,7 +4,7 @@ import * as fs from 'fs';
 
 import { URLSearchParams } from "url";
 
-let accountKey: string = null;
+let accountKey: string = ''
 let accountWide: boolean = false;
 
 const SANDBOX_API_BASE = '/sandbox-api/v1';
@@ -108,9 +108,9 @@ function putTarball(path: string, edgeworkerTarballPath) {
 }
 
 function getJson(path: string) {
-  const searchParams = accountWide ? new URLSearchParams('access=account') : null;
+  const searchParams = accountWide ? new URLSearchParams('access=account') : undefined;
 
-  return sendEdgeRequest(path, 'GET', '', {}, null, searchParams);
+  return sendEdgeRequest(path, 'GET', '', {}, undefined, searchParams);
 }
 
 function getTarball(path: string) {
