@@ -7,9 +7,9 @@
   "type": "module",
   "scripts": {
     "build": "npm run clean && npm run build-ts && npm run copy-json",
-    "clean": "rm -rf ./bin",
+    "clean": "shx rm -rf ./bin",
     "build-ts": "tsc",
-    "copy-json": "cp -r schemas src/template package.json ./bin",
+    "copy-json": "shx cp -r schemas src/template package.json ./bin",
     "postinstall": "npm run build"
   },
   "bin": {
@@ -44,6 +44,7 @@
     "@types/lodash": "4.17.16",
     "@types/node": "22.14.0",
     "@types/request": "2.48.12",
+    "shx": "^0.4.0",
     "typescript": "5.8.3"
   },
   "overrides": {
