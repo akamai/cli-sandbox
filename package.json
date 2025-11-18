@@ -28,7 +28,7 @@
     "easy-table": "1.2.0",
     "find-java-home": "2.0.0",
     "fs-extra": "^11.3.0",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "got": "^14.4.7",
     "inquirer": "^12.9.1",
     "jsonschema": "1.5.0",
