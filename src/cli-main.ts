@@ -645,9 +645,9 @@ async function pullEdgeWorkerFromSandbox(sandboxId, edgeworkerId) {
 
 async function makeFileForEdgeworker(edgeworkerId, hexFile) {
   let edgeworkerFolder = path.join(CLI_CACHE_PATH!,
-    `sandbox-cli/sandboxes`,
+    'sandbox-cli', 'sandboxes',
     sandboxClientManager.getCurrentSandboxName()!,
-    'edgeworkers/');
+    'edgeworkers');
   if (!fs.existsSync(edgeworkerFolder)) {
     fs.mkdirSync(edgeworkerFolder);
   }

@@ -67,7 +67,7 @@ export function getJavaHome() {
 
 export async function getJavaExecutablePath() {
   const home = await getJavaHome();
-  return path.join(home, '/bin/java');
+  return path.join(home, 'bin', 'java');
 }
 
 export async function getJavaVersion() {
