@@ -285,7 +285,7 @@ export async function executeSandboxClient(printLogs) {
   const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
   const configPath = path.join(getCurrentSandboxFolder(), 'config.json');
   const latestJar = await findLatestJar();
-  if(!latestJar) {
+  if (!latestJar) {
     cliUtils.logAndExit(1, 'Unable to find Sandbox Client JAR file. Please try to reinstall sandbox-cli and contact support.');
   }
   const loggingConfigPath = path.join(path.dirname(path.dirname(latestJar.path)), 'conf', 'logback.xml');
