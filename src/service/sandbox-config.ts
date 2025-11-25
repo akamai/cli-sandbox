@@ -17,7 +17,7 @@ export class SandboxConfig {
 
   constructor(sandboxesBaseDir: string, sandboxName: string) {
     this.sandboxesDirectory = path.join(sandboxesBaseDir, sandboxName);
-    this.configPath = path.join(this.sandboxesDirectory, '/config.json');
+    this.configPath = path.join(this.sandboxesDirectory, 'config.json');
   }
 
   useClientConfig(config: any) {

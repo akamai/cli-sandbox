@@ -24,10 +24,10 @@ if (!fs.existsSync(CLI_CACHE_PATH)) {
 }
 
 const GITHUB_API_URL = 'https://api.github.com/repos/akamai/sandbox-client/releases/latest';
-const SANDBOX_CLI_HOME = path.join(CLI_CACHE_PATH, '/sandbox-cli/');
-const DOWNLOAD_DIR = path.join(SANDBOX_CLI_HOME, '/downloads/');
-const SANDBOXES_DIR = path.join(SANDBOX_CLI_HOME, '/sandboxes/');
-const DATASTORE_FILE_PATH = path.join(SANDBOX_CLI_HOME + '.datastore');
+const SANDBOX_CLI_HOME = path.join(CLI_CACHE_PATH, 'sandbox-cli');
+const DOWNLOAD_DIR = path.join(SANDBOX_CLI_HOME, 'downloads');
+const SANDBOXES_DIR = path.join(SANDBOX_CLI_HOME, 'sandboxes');
+const DATASTORE_FILE_PATH = path.join(SANDBOX_CLI_HOME, '.datastore');
 
 let cachedGithubResponse: any | null = null;
 
@@ -82,7 +82,7 @@ async function findLatestJar(): Promise<{ path: string; version: string } | null
     'sandbox-client-*-RELEASE',
     'lib',
     'sandbox-client-*-RELEASE.jar'
-  );
+  ).replace(/\\/g, '/');
 
   const matches = await glob(pattern);
   if (matches.length === 0) return null;
@@ -151,11 +151,18 @@ export async function downloadClient() {
 }
 
 
-function unzipClient(filePath:string) {
-  const CLIENT_INSTALL_PATH = filePath.replace("download/", '').replace("-default.zip", "");
+function unzipClient(filePath: string) {
+  // Extract the version from the filename
+  const match = filePath.match(/sandbox-client-(\d+\.\d+\.\d+)-RELEASE-default\.zip$/);
+  if (!match) {
+    cliUtils.logAndExit(1, `Could not determine client version from file name: ${filePath}`);
+  }
+  const version = match[1];
+  const CLIENT_INSTALL_PATH = path.join(SANDBOX_CLI_HOME, `sandbox-client-${version}-RELEASE`);
   console.log(`Installing to ${CLIENT_INSTALL_PATH}`);
-  return decompress(filePath, SANDBOX_CLI_HOME, {
-    filter: file => !file.path.endsWith('/') // skip listing directories: https://github.com/kevva/decompress/issues/46
+  // Filter out directories when decompressing. See https://github.com/kevva/decompress/issues/46
+  return decompress(filePath, CLIENT_INSTALL_PATH, {
+    filter: file => !file.path.endsWith('/')
   });
 }
 
@@ -237,7 +244,7 @@ export function getSandboxLocalData(sandboxId: string) {
 }
 
 function getLogPath() {
-  return path.join(getCurrentSandboxFolder(), '/logs')
+  return path.join(getCurrentSandboxFolder(), 'logs')
 }
 
 export function flushLocalSandbox(sandboxId: string) {
@@ -277,7 +284,10 @@ export async function executeSandboxClient(printLogs) {
   const loggingPath = getLogPath();
   const loggingFilePath = path.join(loggingPath, 'sandbox-client.log');
   const configPath = path.join(getCurrentSandboxFolder(), 'config.json');
-  const latestJar = (await findLatestJar())!;
+  const latestJar = await findLatestJar();
+  if (!latestJar) {
+    cliUtils.logAndExit(1, 'Unable to find Sandbox Client JAR file. Please try to reinstall sandbox-cli and contact support.');
+  }
   const loggingConfigPath = path.join(path.dirname(path.dirname(latestJar.path)), 'conf', 'logback.xml');
 
   const springProfiles:string[] = [];
