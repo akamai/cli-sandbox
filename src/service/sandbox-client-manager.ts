@@ -160,6 +160,7 @@ function unzipClient(filePath: string) {
   const version = match[1];
   const CLIENT_INSTALL_PATH = path.join(SANDBOX_CLI_HOME, `sandbox-client-${version}-RELEASE`);
   console.log(`Installing to ${CLIENT_INSTALL_PATH}`);
+  // Filter out directories when decompressing. See https://github.com/kevva/decompress/issues/46
   return decompress(filePath, CLIENT_INSTALL_PATH, {
     filter: file => !file.path.endsWith('/')
   });
