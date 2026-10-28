@@ -92,7 +92,8 @@ Options:
   --debug                                                       Show debug information.
   --edgerc <file>                                               Use edgerc file for authentication.
   --section <name>                                              Use this section in edgerc file that contains the credential set.
-  --accountkey <account-id>                                     Use given internal parameter.
+  --account-key <account-id>                                    Use given internal parameter.
+  --accountkey <account-id>                                     Deprecated alias of --account-key.
   -h, --help                                                    Output usage information.
 
 Commands:

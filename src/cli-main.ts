@@ -695,12 +695,16 @@ program
   .option('--debug', 'Show debug information.')
   .option('--edgerc <file>', 'Use edgerc file for authentication.')
   .option('--section <name>', 'Use this section in edgerc file that contains the credential set.')
-  .option('--accountkey <account-id>', 'Use given internal parameter.')
+  .option('--account-key <account-id>', 'Use given internal parameter.')
+  .option('--accountkey <account-id>', 'Deprecated alias of --account-key.')
   .on('option:edgerc', function (edgeRcFilePath) {
     envUtils.setEdgeRcFilePath(edgeRcFilePath);
   })
   .on('option:section', function (section) {
     envUtils.setEdgeRcSection(section);
+  })
+  .on('option:account-key', function (key) {
+    sandboxSvc.setAccountKey(key);
   })
   .on('option:accountkey', function (key) {
     sandboxSvc.setAccountKey(key);

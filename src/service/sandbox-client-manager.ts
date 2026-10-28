@@ -5,9 +5,9 @@ import * as envUtils from '../utils/env-utils.js';
 import * as cliUtils from '../utils/cli-utils.js';
 import axios from 'axios';
 import fs from "fs";
-import decompress from "decompress";
+import AdmZip from "adm-zip";
 import path from "path";
-import shell from "shelljs";
+import { spawn } from "node:child_process";
 import fsExtra from "fs-extra";
 import got from "got";
 import semver from 'semver';
@@ -159,10 +159,7 @@ function unzipClient(filePath: string) {
   }
   const version = match[1];
   console.log(`Installing to ${path.join(SANDBOX_CLI_HOME, `sandbox-client-${version}-RELEASE`)}`);
-  // Filter out directories when decompressing. See https://github.com/kevva/decompress/issues/46
-  return decompress(filePath, SANDBOX_CLI_HOME, {
-    filter: file => !file.path.endsWith('/')
-  });
+  new AdmZip(filePath).extractAllTo(SANDBOX_CLI_HOME, true);
 }
 
 export async function isNewVersionAvailable(): Promise<boolean> {
@@ -311,7 +308,9 @@ export async function executeSandboxClient(printLogs) {
 
   printStartupInfo(configPath, loggingPath, loggingFilePath, loggingConfigPath, args);
 
-  shell.exec(cmd, function (exitCode) {
+  const child = spawn(cmd, { shell: true, stdio: 'inherit' });
+  child.on('error', () => printStartupFailureInfo(springProfiles));
+  child.on('close', (exitCode) => {
     if (exitCode !== 0) {
       printStartupFailureInfo(springProfiles);
     }
