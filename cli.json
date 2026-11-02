@@ -1,11 +1,11 @@
 {
   "requirements": {
-    "node": "14.21.3"
+    "node": "22.0.0"
   },
   "commands": [
     {
       "name": "sandbox",
-      "version": "1.7.1",
+      "version": "1.8.4",
       "description": "Manage Akamai Sandbox environments.",
       "bin": "https://github.com/akamai/cli-sandbox/releases/download/{{.Version}}/akamai-{{.Name}}-{{.Version}}-{{.OS}}-{{.Arch}}{{.BinSuffix}}"
     }
